@@ -1,0 +1,21 @@
+{
+  "name": "commandhandler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ascii-table": "0.0.9",
+    "axios": "^0.27.2",
+    "discord.js": "^12.2.0",
+    "djs-voice": "^1.2.0",
+    "nodemon": "^2.0.19",
+    "xml2js": "^0.4.23"
+  }
+}
