@@ -13,11 +13,27 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    jDiscord="http://62.104.67.26:24211/feed/dedicated-server-stats.xml?code=600fdd830ec26f3869f78a52fec78cf3"
-    kiszonkaJ="http://62.104.67.219:22711/feed/dedicated-server-stats.xml?code=f0d115f68b7e54e7ca7028316da5b1b6"
-    const url = !!args[0] ? kiszonkaJ : jDiscord
-    console.log(args,!!args[0]);
     
+    elrengrat="http://62.104.67.26:24211/feed/dedicated-server-stats.xml?code=600fdd830ec26f3869f78a52fec78cf3"
+    cos="http://62.104.67.219:22711/feed/dedicated-server-stats.xml?code=f0d115f68b7e54e7ca7028316da5b1b6"
+    kiszonka = "http://173.199.107.43:18131/feed/dedicated-server-stats.xml?code=727abb5e6636298712ede57477209220"
+    
+    let url=''
+
+    switch (args[0]) {
+      case 2:
+        url=cos
+        break;
+        
+      case 3:
+        url=kiszonka
+        break;
+        
+      default:
+        url=elrengrat
+        break;
+    }
+
     const {data} = await axios({
       method: 'get',
       url: url,
@@ -26,16 +42,13 @@ module.exports = {
     const parser = new xml2js.Parser();
 
     parser.parseString(data, (err, result) => {
-      // players = "";
-      console.log();
-
       players = '';
       counter=1
       result.Server.Slots[0].Player.forEach(({ _, $ }) => {
         if (_ !== undefined)
           players += `${counter++}. ${_} ${$.uptime} min\n`;
       });
-      const msg = message.channel.send(
+      message.channel.send(
         !!players
           ? `Lista graczy na serwerze **${result.Server["$"].name.substring(
               0,
@@ -44,7 +57,5 @@ module.exports = {
           : "Tu nikogo nie ma!"
       );
     });
-
-    // msg.delete();
   },
 };
