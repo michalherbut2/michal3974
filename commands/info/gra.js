@@ -30,12 +30,13 @@ module.exports = {
         break;
       
       case "help":
-        message.channel.send(`Wyświetla graczy na serwerze
-        Składnia: !gra [SERWER]
-        Jeżeli nie został podany SERWER, wyświetli **Erlengrat**
-          1 Erlengrat
-          2 Kiszonka
-          3 The Old Stream Farm`)
+        message.channel.send(
+`Wyświetla graczy i spędzony czas na serwerze
+Składnia: !gra [SERWER]
+Jeżeli nie został podany SERWER, wyświetli **Erlengrat**
+  1 Erlengrat
+  2 Kiszonka
+  3 The Old Stream Farm`)
         return
         break;
 
