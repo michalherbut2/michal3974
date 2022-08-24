@@ -28,6 +28,16 @@ module.exports = {
       case "3":
         url = cos;
         break;
+      
+      case "help":
+        message.channel.send(`Wyświetla graczy na serwerze
+        Składnia: !gra [SERWER]
+        Jeżeli nie został podany SERWER, wyświetli **Erlengrat**
+          1 Erlengrat
+          2 Kiszonka
+          3 The Old Stream Farm`)
+        return
+        break;
 
       default:
         url = elrengrat;
