@@ -21,16 +21,16 @@ module.exports = {
     let url=''
 
     switch (args[0]) {
-      case 2:
-        url=cos
+      case "2":
+        url = kiszonka;
         break;
-        
-      case 3:
-        url=kiszonka
+
+      case "3":
+        url = cos;
         break;
-        
+
       default:
-        url=elrengrat
+        url = elrengrat;
         break;
     }
 
