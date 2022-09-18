@@ -14,21 +14,9 @@ module.exports = {
 
   run: async (client, message, args) => {
     
-    elrengrat="http://62.104.67.26:24211/feed/dedicated-server-stats.xml?code=600fdd830ec26f3869f78a52fec78cf3"
-    cos="http://62.104.67.219:22711/feed/dedicated-server-stats.xml?code=f0d115f68b7e54e7ca7028316da5b1b6"
-    kiszonka = "http://173.199.107.43:18131/feed/dedicated-server-stats.xml?code=727abb5e6636298712ede57477209220"
+    const url ="http://137.74.4.51:8270/feed/dedicated-server-stats.xml?code=058e2a59bcd686de178691fedae13e98";
     
-    let url=''
-
     switch (args[0]) {
-      case "2":
-        url = kiszonka;
-        break;
-
-      case "3":
-        url = cos;
-        break;
-      
       case "help":
         message.channel.send(
 `Wyświetla graczy i spędzony czas na serwerze
@@ -38,10 +26,6 @@ Jeżeli nie został podany SERWER, wyświetli **Erlengrat**
   2 Kiszonka
   3 The Old Stream Farm`)
         return
-        break;
-
-      default:
-        url = elrengrat;
         break;
     }
 
