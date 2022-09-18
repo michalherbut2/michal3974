@@ -20,11 +20,9 @@ module.exports = {
       case "help":
         message.channel.send(
 `Wyświetla graczy i spędzony czas na serwerze
-Składnia: !gra [SERWER]
-Jeżeli nie został podany SERWER, wyświetli **Erlengrat**
-  1 Erlengrat
-  2 Kiszonka
-  3 The Old Stream Farm`)
+Składnia: !gra [OPCJA]
+Dowolna OPCJA lub jej brak, wyświetli **Erlengrat**
+!gra help - wyświetla pomoc`)
         return
         break;
     }
@@ -45,10 +43,7 @@ Jeżeli nie został podany SERWER, wyświetli **Erlengrat**
       });
       message.channel.send(
         !!players
-          ? `Lista graczy na serwerze **${result.Server["$"].name.substring(
-              0,
-              13
-            )}**:\n\n${players}`
+          ? `Gracze na serwerze **${result.Server["$"].name}**:\n\n${players}`
           : "Tu nikogo nie ma!"
       );
     });
