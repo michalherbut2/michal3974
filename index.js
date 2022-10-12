@@ -25,14 +25,16 @@ client.on('ready', () => {
     client.user.setActivity(`${prefix}help`)
     console.log(`${client.user.username} ✅`)
 
-    const weatherChannel=client.channels.cache.find(chan=>chan.id==='996484736350441562')
+    // const weatherChannel=client.channels.cache.find(chan=>chan.id==='996484736350441562')
 
-    setInterval(()=>{
-        weatherChannel.send('Jak tam pogoda u Was?')
-    },1000*60*60*24)
+    // setInterval(()=>{
+    //     weatherChannel.send('Jak tam pogoda u Was?')
+    // },1000*60*60*24)
 })
 client.on('message', async message =>{
     if(message.author.bot) return;
+    if(message.content.toLowerCase().includes('hasło') || message.content.toLowerCase().includes('haslo'))
+        message.channel.send('asd')
     if(!message.content.startsWith(prefix)) return;
     if(!message.guild) return;
     if(!message.member) message.member = await message.guild.fetchMember(message);
