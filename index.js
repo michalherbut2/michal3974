@@ -34,7 +34,7 @@ client.on('ready', () => {
 client.on('message', async message =>{
     if(message.author.bot) return;
     if(message.content.toLowerCase().includes('hasło') || message.content.toLowerCase().includes('haslo'))
-        message.channel.send('wbij na głosowy i spytaj admina **Theszymon**a')
+        message.channel.send('wbij na **głosowy** i spytaj admina **Theszymon**a')
     if(!message.content.startsWith(prefix)) return;
     if(!message.guild) return;
     if(!message.member) message.member = await message.guild.fetchMember(message);
