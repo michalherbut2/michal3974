@@ -14,7 +14,7 @@ module.exports = {
 
   run: async (client, message, args) => {
     
-    const url ="http://137.74.4.51:8270/feed/dedicated-server-stats.xml?code=058e2a59bcd686de178691fedae13e98";
+    const url = "http://62.104.10.222:8080/feed/dedicated-server-stats.xml?code=9e2a03bc3138eddae0928cba19d421a6";
     
     switch (args[0]) {
       case "help":
