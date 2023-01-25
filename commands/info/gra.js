@@ -39,11 +39,17 @@ Dowolna OPCJA lub jej brak, wyświetli **Erlengrat**
       counter=1
       result.Server.Slots[0].Player.forEach(({ _, $ }) => {
         if (_ !== undefined)
-          players += `${counter++}. ${_} ${$.uptime} min\n`;
+          players +=
+            `${counter++}.`.padEnd(4) +
+            `${_}`.padEnd(21) +
+            `${$.uptime}`.padStart(3) +
+            ` min ${$.isAdmin === 'true' ? 'Admin👑' : ''}\n`;
       });
       message.channel.send(
         !!players
-          ? `Gracze na serwerze **${result.Server["$"].name}**:\n\n${players}`
+          ? `Gracze na serwerze **${
+              result.Server["$"].name
+            }**:\`\`\`ml\nNr  ${`Nazwa`.padEnd(24)}Czas\n${players}\`\`\``
           : "Tu nikogo nie ma!"
       );
     });
