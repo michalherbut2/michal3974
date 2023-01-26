@@ -1,67 +1,54 @@
-const { prefix, token } = require("./config.json");
+const Discord = require('discord.js');
+const Client = new Discord.Client();
+const settings = require('./settings.json');
+const fs = require('fs');
+const data = require('quick.db');
+const express = require('express');
+const app = express();
 
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
-const bot = new Client({
-//   intents: [
-//     GatewayIntentBits.Guilds,
-//     GatewayIntentBits.GuildMessages,
-//     GatewayIntentBits.GuildMembers,
-//   ],
+let prefix = settings.prefix;
+
+app.get("/", (req, res) => {
+  res.send("I'm alive.");
 });
 
-const fs = require("fs");
-
-bot.commands = new Collection();
-
-const commandFiles = fs.readdirSync('./commands/').filter(f => f.endsWith('.js'))
-for (const file of commandFiles) {
-    const props = require(`./commands/${file}`)
-    console.log(`${file} loaded`)
-    bot.commands.set(props.config.name, props)
-}
-
-const commandSubFolders = fs.readdirSync('./commands/').filter(f => !f.endsWith('.js'))
-
-commandSubFolders.forEach(folder => {
-    const commandFiles = fs.readdirSync(`./commands/${folder}/`).filter(f => f.endsWith('.js'))
-    for (const file of commandFiles) {
-        const props = require(`./commands/${folder}/${file}`)
-        console.log(`${file} loaded from ${folder}`)
-        bot.commands.set(props.config.name, props)
-    }
+//Load events.
+fs.readdir("./events/", (err, files) => {
+  if (err) return console.error(err);
+  files.forEach((file) => {
+    const event = require(`./events/${file}`);
+    let eventName = file.split(".")[0];
+    console.log(`${eventName} loaded.`);
+    Client.on(eventName, event.bind(null, Client));
+  });
 });
 
-// Load Event files from events folder
-const eventFiles = fs.readdirSync('./events/').filter(f => f.endsWith('.js'))
+//Load commands.
+Client.commands = new Discord.Collection();
+Client.aliases = new Discord.Collection();
 
-for (const file of eventFiles) {
-    const event = require(`./events/${file}`)
-    if(event.once) {
-        bot.once(event.name, (...args) => event.execute(...args, bot))
-    } else {
-        bot.on(event.name, (...args) => event.execute(...args, bot))
-    }
-}
-
-//Command Manager
-bot.on("messageCreate", async message => {
-    //Check if author is a bot or the message was sent in dms and return
-    if(message.author.bot) return;
-    if(message.channel.type === "dm") return;
-
-    //get prefix from config and prepare message so it can be read as a command
-    let messageArray = message.content.split(" ");
-    let cmd = messageArray[0];
-    let args = messageArray.slice(1);
-
-    //Check for prefix
-    if(!cmd.startsWith(prefix)) return;
-
-    //Get the command from the commands collection and then if the command is found run the command file
-    let commandfile = bot.commands.get(cmd.slice(prefix.length));
-    if(commandfile) commandfile.run(bot,message,args);
-
+fs.readdir("./commands/", (err, files) => {
+  if (err) return console.error(err);
+  files.forEach((file) => {
+    if (!file.endsWith(".js")) return;
+    let cmd = require(`./commands/${file}`);
+    let cmdFileName = file.split(".")[0];
+    Client.commands.set(cmd.help.name, cmd);
+    console.log(`${cmdFileName} is loaded.`);
+    if (cmd.help.aliases) {
+      cmd.help.aliases.forEach(alias => {
+        Client.aliases.set(alias, cmd.help.name);
+      });
+    };
+  });
 });
 
-//Token needed in config.json
-bot.login(token);
+//Logging if the bot is online.
+Client.on("ready", () => {
+  console.log(`${Client.user.tag} is online.`);
+  Client.user.setActivity(`${prefix}help`, { type: "PLAYING" });
+  Client.user.setStatus(`online`)
+});
+
+//Login.
+Client.login(settings.key)

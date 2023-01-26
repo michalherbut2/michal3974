@@ -1,20 +1,16 @@
 const xml2js = require("xml2js");
 const { default: axios } = require("axios");
 
-module.exports = {
-  config: {
-    name: "gra",
-    description: "Returns players list",
-    usage: `gra`,
-  },
 
-  /**
-   * @param {Client} client
-   * @param {Message} message
-   * @param {String[]} args
-   */
+exports.help = {
+  name: "gra",
+};
 
-  run: async (client, message, args) => {
+// exports.run = async (client, message, args) => {
+//   message.channel.send("Siema 👋");
+// };
+
+exports.run = async (client, message, args) => {
     const url =
       "http://62.104.10.222:8080/feed/dedicated-server-stats.xml?code=9e2a03bc3138eddae0928cba19d421a6";
 
@@ -56,5 +52,4 @@ Dowolna OPCJA lub jej brak, wyświetli **Erlengrat**
           : "Tu nikogo nie ma!"
       );
     });
-  },
-};
+  }
