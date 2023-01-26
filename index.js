@@ -1,12 +1,12 @@
 const { prefix, token } = require("./config.json");
 
-const { Client, Intents, Collection } = require('discord.js');
-const bot = new Client({ 
-    intents: [
-        Intents.FLAGS.GUILDS, 
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_MEMBERS
-    ] 
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
+const bot = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
+  ],
 });
 
 const fs = require("fs");
