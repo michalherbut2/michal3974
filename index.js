@@ -1,48 +1,56 @@
-const {Collection, Client, Discord} = require('discord.js')
-const fs = require('fs')
+const {
+  Client,
+  GatewayIntentBits,
+  ActivityType,
+  Collection,
+} = require("discord.js");
+
+const fs = require("fs");
 const client = new Client({
-    intents: [
-        "GUILDS",
-        "GUILD_MEMBER",
-        "GUILD_BANS",
-        "GUILD_EMOJIS",
-        "GUILD_MESSAGE_REACTIONS",
-        "GUILD_MESSAGES",
-        "GUILD_VOICE_STATES"
-    ]
-    // disableEveryone: true
-})
-const config = require('./config.json')
-const prefix = config.prefix
-const token = config.token
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ]
+});
+
+const config = require("./config.json");
+const prefix = config.prefix;
+const token = config.token;
 client.commands = new Collection();
 client.aliases = new Collection();
 client.categories = fs.readdirSync("./commands/");
 ["command"].forEach(handler => {
-    require(`./handlers/${handler}`)(client);
-}); 
-client.on('ready', () => {
-    client.user.setActivity(`${prefix}help`)
-    console.log(`${client.user.username} ✅`)
+  require(`./handlers/${handler}`)(client);
+});
+client.on("ready", () => {
+  client.user.setActivity(`${prefix}help`);
+  console.log(`${client.user.username} ✅`);
 
-    // const weatherChannel=client.channels.cache.find(chan=>chan.id==='996484736350441562')
+  // const weatherChannel=client.channels.cache.find(chan=>chan.id==='996484736350441562')
 
-    // setInterval(()=>{
-    //     weatherChannel.send('Jak tam pogoda u Was?')
-    // },1000*60*60*24)
-})
-client.on('message', async message =>{
-    if(message.author.bot) return;
-    if(message.content.toLowerCase().includes('hasło') || message.content.toLowerCase().includes('haslo'))
-        message.channel.send("**Hasło** na <#1001534687765860455> i wbij na **głosowy** <#995965618744475658>");
-    if(!message.content.startsWith(prefix)) return;
-    if(!message.guild) return;
-    if(!message.member) message.member = await message.guild.fetchMember(message);
-    const args = message.content.slice(prefix.length).trim().split(/ +/g);
-    const cmd = args.shift().toLowerCase();
-    if(cmd.length == 0 ) return;
-    let command = client.commands.get(cmd)
-    if(!command) command = client.commands.get(client.aliases.get(cmd));
-    if(command) command.run(client, message, args) 
-})
-client.login(token)
+  // setInterval(()=>{
+  //     weatherChannel.send('Jak tam pogoda u Was?')
+  // },1000*60*60*24)
+});
+client.on("message", async message => {
+  if (message.author.bot) return;
+  if (
+    message.content.toLowerCase().includes("hasło") ||
+    message.content.toLowerCase().includes("haslo")
+  )
+    message.channel.send(
+      "**Hasło** na <#1001534687765860455> i wbij na **głosowy** <#995965618744475658>"
+    );
+  if (!message.content.startsWith(prefix)) return;
+  if (!message.guild) return;
+  if (!message.member)
+    message.member = await message.guild.fetchMember(message);
+  const args = message.content.slice(prefix.length).trim().split(/ +/g);
+  const cmd = args.shift().toLowerCase();
+  if (cmd.length == 0) return;
+  let command = client.commands.get(cmd);
+  if (!command) command = client.commands.get(client.aliases.get(cmd));
+  if (command) command.run(client, message, args);
+});
+client.login(token);
