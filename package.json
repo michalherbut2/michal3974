@@ -12,10 +12,10 @@
   "license": "ISC",
   "dependencies": {
     "ascii-table": "0.0.9",
-    "axios": "^0.27.2",
-    "discord.js": "^12.2.0",
+    "axios": "^1.2.4",
+    "discord.js": "^14.7.1",
     "djs-voice": "^1.2.0",
-    "nodemon": "^2.0.19",
+    "nodemon": "^2.0.20",
     "xml2js": "^0.4.23"
   }
 }
