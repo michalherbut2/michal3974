@@ -1,7 +1,9 @@
 module.exports = {
-  name: "siema",
-  category: "info",
-  description: "Replay siema",
+  config: {
+    name: "siema",
+    description: "Replay siema",
+    usage: `siema`,
+  },
 
   /**
    * @param {Client} client

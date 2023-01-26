@@ -1,56 +1,67 @@
-const {
-  Client,
-  GatewayIntentBits,
-  ActivityType,
-  Collection,
-} = require("discord.js");
+const { prefix, token } = require("./config.json");
+
+const { Client, Intents, Collection } = require('discord.js');
+const bot = new Client({ 
+    intents: [
+        Intents.FLAGS.GUILDS, 
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_MEMBERS
+    ] 
+});
 
 const fs = require("fs");
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ]
+
+bot.commands = new Collection();
+
+const commandFiles = fs.readdirSync('./commands/').filter(f => f.endsWith('.js'))
+for (const file of commandFiles) {
+    const props = require(`./commands/${file}`)
+    console.log(`${file} loaded`)
+    bot.commands.set(props.config.name, props)
+}
+
+const commandSubFolders = fs.readdirSync('./commands/').filter(f => !f.endsWith('.js'))
+
+commandSubFolders.forEach(folder => {
+    const commandFiles = fs.readdirSync(`./commands/${folder}/`).filter(f => f.endsWith('.js'))
+    for (const file of commandFiles) {
+        const props = require(`./commands/${folder}/${file}`)
+        console.log(`${file} loaded from ${folder}`)
+        bot.commands.set(props.config.name, props)
+    }
 });
 
-const config = require("./config.json");
-const prefix = config.prefix;
-const token = config.token;
-client.commands = new Collection();
-client.aliases = new Collection();
-client.categories = fs.readdirSync("./commands/");
-["command"].forEach(handler => {
-  require(`./handlers/${handler}`)(client);
-});
-client.on("ready", () => {
-  client.user.setActivity(`${prefix}help`);
-  console.log(`${client.user.username} ✅`);
+// Load Event files from events folder
+const eventFiles = fs.readdirSync('./events/').filter(f => f.endsWith('.js'))
 
-  // const weatherChannel=client.channels.cache.find(chan=>chan.id==='996484736350441562')
+for (const file of eventFiles) {
+    const event = require(`./events/${file}`)
+    if(event.once) {
+        bot.once(event.name, (...args) => event.execute(...args, bot))
+    } else {
+        bot.on(event.name, (...args) => event.execute(...args, bot))
+    }
+}
 
-  // setInterval(()=>{
-  //     weatherChannel.send('Jak tam pogoda u Was?')
-  // },1000*60*60*24)
+//Command Manager
+bot.on("messageCreate", async message => {
+    //Check if author is a bot or the message was sent in dms and return
+    if(message.author.bot) return;
+    if(message.channel.type === "dm") return;
+
+    //get prefix from config and prepare message so it can be read as a command
+    let messageArray = message.content.split(" ");
+    let cmd = messageArray[0];
+    let args = messageArray.slice(1);
+
+    //Check for prefix
+    if(!cmd.startsWith(prefix)) return;
+
+    //Get the command from the commands collection and then if the command is found run the command file
+    let commandfile = bot.commands.get(cmd.slice(prefix.length));
+    if(commandfile) commandfile.run(bot,message,args);
+
 });
-client.on("message", async message => {
-  if (message.author.bot) return;
-  if (
-    message.content.toLowerCase().includes("hasło") ||
-    message.content.toLowerCase().includes("haslo")
-  )
-    message.channel.send(
-      "**Hasło** na <#1001534687765860455> i wbij na **głosowy** <#995965618744475658>"
-    );
-  if (!message.content.startsWith(prefix)) return;
-  if (!message.guild) return;
-  if (!message.member)
-    message.member = await message.guild.fetchMember(message);
-  const args = message.content.slice(prefix.length).trim().split(/ +/g);
-  const cmd = args.shift().toLowerCase();
-  if (cmd.length == 0) return;
-  let command = client.commands.get(cmd);
-  if (!command) command = client.commands.get(client.aliases.get(cmd));
-  if (command) command.run(client, message, args);
-});
-client.login(token);
+
+//Token needed in config.json
+bot.login(token);

@@ -1,5 +1,4 @@
 {
-  "token": "MTAwNTE2MTI1MzEyOTQzMzE1OA.Ge-wAG.xs0GHCc8r2AlZumxMZDyOEhyOtG0LmhqdKERKc",
-  "prefix": "",
-  "mongo": "mongodb://localhost:2717/discord"
+    "prefix":"",
+    "token":"MTAwNTE2MTI1MzEyOTQzMzE1OA.Ge-wAG.xs0GHCc8r2AlZumxMZDyOEhyOtG0LmhqdKERKc"
 }
