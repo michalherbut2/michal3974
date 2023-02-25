@@ -2,7 +2,7 @@
   "name": "discord.js-bot-template",
   "version": "1.0.0",
   "description": "basic bot template with command handler",
-  "main": "app.js",
+  "main": "index.js",
   "dependencies": {
     "asynckit": "^0.4.0",
     "axios": "^1.2.5",
