@@ -36,6 +36,7 @@ Dowolna OPCJA lub jej brak, wyświetli **Erlengrat**
     });
 
     const parser = new xml2js.Parser();
+    const nameSize = 28
 
     parser.parseString(data, (err, result) => {
       players = "";
@@ -44,17 +45,25 @@ Dowolna OPCJA lub jej brak, wyświetli **Erlengrat**
         if (_ !== undefined)
           players +=
             `${counter++}.`.padEnd(4) +
-            `${_}`.padEnd(21) +
-            `${$.uptime}`.padStart(3) +
-            ` min ${$.isAdmin === "true" ? "Admin👑" : ""}\n`;
+            `${_}`.padEnd(nameSize) +
+            `${parseInt($.uptime / 60)}:` +
+            `${$.uptime % 60}`.padStart(2, "0") +
+            ` h ${$.isAdmin === "true" ? "Admin👑" : ""}\n`;
       });
       message.channel.send(
         !!players
           ? `Gracze na serwerze **${
               result.Server["$"].name
-            }**:\`\`\`ml\nNr  ${`Nazwa`.padEnd(24)}Czas\n${players}\`\`\``
+            }**:\`\`\`ml\nNr  ${`Nazwa`.padEnd(nameSize)}Czas\n${players}\`\`\``
           : "Tu nikogo nie ma!"
       );
+      // console.log(
+      //   !!players
+      //     ? `Gracze na serwerze **${
+      //         result.Server["$"].name
+      //       }**:\`\`\`ml\nNr  ${`Nazwa`.padEnd(nameSize)}Czas\n${players}\`\`\``
+      //     : "Tu nikogo nie ma!"
+      // );
     });
   },
 };
