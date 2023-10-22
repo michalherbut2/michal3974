@@ -16,8 +16,7 @@ module.exports.formatTable = async data => {
   });
 
   output = !!players
-    ? `Gracze na serwerze **${data.Server["$"].name}** o ${time}:\`\`\`ml\n
-    Nr  ${`Nazwa`.padEnd(nameSize)}Czas\n${players}\`\`\``
+    ? `Gracze na serwerze **${data.Server["$"].name}** o ${time}:\`\`\`ml\nNr  ${`Nazwa`.padEnd(nameSize)}Czas\n${players}\`\`\``
     : "Tu nikogo nie ma!";
 
   return output;

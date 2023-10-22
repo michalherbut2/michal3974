@@ -1,4 +1,4 @@
-module.exports = async (message, data) => {
+module.exports = async (channel, data) => {
   const name = `serwer ${data.Server.Slots[0]["$"].numUsed} na ${data.Server.Slots[0]["$"].capacity}`;
-  message.channel.setName(name);
+  channel.setName(name);
 };
