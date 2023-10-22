@@ -1,3 +1,4 @@
+const { channel } = require("diagnostics_channel");
 const { prefix, token } = require("./config.json");
 
 const { Client, Intents, Collection } = require('discord.js');
@@ -45,6 +46,7 @@ for (const file of eventFiles) {
 
 //Command Manager
 bot.on("messageCreate", async message => {
+    
     //Check if author is a bot or the message was sent in dms and return
     if(message.author.bot) return;
     if(message.channel.type === "dm") return;
@@ -61,7 +63,15 @@ bot.on("messageCreate", async message => {
     let commandfile = bot.commands.get(cmd.slice(prefix.length));
     if(commandfile) commandfile.run(bot,message,args);
 
+
 });
 
 //Token needed in config.json
 bot.login(token);
+
+const main = async () => {
+    // const message = await bot.edit
+    
+
+}
+main()
