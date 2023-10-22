@@ -68,10 +68,3 @@ bot.on("messageCreate", async message => {
 
 //Token needed in config.json
 bot.login(token);
-
-const main = async () => {
-    // const message = await bot.edit
-    
-
-}
-main()
