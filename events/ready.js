@@ -1,3 +1,5 @@
+const addReaction = require("../computings/addReaction");
+
 module.exports = {
     name: 'ready',
     once: true,
@@ -9,6 +11,8 @@ module.exports = {
 
       //Set the Presence of the bot user
       bot.user.setPresence({ activities: [{ name: "Jak pogoda?" }] });
-      bot.commands.get("lista").run(bot,'','')
+      bot.commands.get("lista").run(bot, '', '')
+      bot.user.setAvatar("img/logo.jpg");
+      addReaction(bot)
     }
 }

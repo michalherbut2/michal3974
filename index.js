@@ -9,8 +9,8 @@ const bot = new Client({
         Intents.FLAGS.GUILD_MEMBERS
     ] 
 });
-
 const fs = require("fs");
+const { log } = require("console");
 
 bot.commands = new Collection();
 
@@ -53,17 +53,16 @@ bot.on("messageCreate", async message => {
 
     //get prefix from config and prepare message so it can be read as a command
     let messageArray = message.content.split(" ");
-    let cmd = messageArray[0];
+    let cmd = messageArray[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     let args = messageArray.slice(1);
 
     //Check for prefix
     if(!cmd.startsWith(prefix)) return;
-
     //Get the command from the commands collection and then if the command is found run the command file
     let commandfile = bot.commands.get(cmd.slice(prefix.length));
     if(commandfile) commandfile.run(bot,message,args);
 
-
+    if(cmd.includes('imie')) bot.commands.get('imie').run(bot,message,args)
 });
 
 //Token needed in config.json
