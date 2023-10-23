@@ -1,4 +1,4 @@
-module.exports.formatTable = async data => {
+module.exports = async data => {
   const nameSize = 28;
   const d = new Date();
   const time = `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;

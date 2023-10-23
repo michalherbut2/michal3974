@@ -21,7 +21,7 @@ module.exports = {
       const msg = await channel.messages.fetch("1165600637564760125");
       const data = await getData();
       const jsData = await convertData(data)
-      const content = await formatTable.formatTable(jsData);
+      const content = await formatTable(jsData);
       msg.edit(content);
       await changeChannelName(channel, jsData);
     };
