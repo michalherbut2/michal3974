@@ -12,8 +12,11 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    const channel = "1165725038608142439"
-    if (channel.includes(message.channel.id)) {
+    const silageRecruitmentChannel = "1165725038608142439"
+    const mainRecruitmentChannel = "1124032855492804681";
+
+    if (mainRecruitmentChannel.includes(message.channel.id) ||
+      silageRecruitmentChannel.includes(message.channel.id)) {
       message.react("✅");
       message.react("❌");
     }
