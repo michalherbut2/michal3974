@@ -11,7 +11,7 @@ module.exports = async client => {
       const jsData = await convertData(data);
       const content = await formatTable(jsData);
       msg.edit(content);
-      await changeChannelName(channel, jsData);
+      changeChannelName(channel, jsData);
     };
     await updateTable();
     // milisecond*seconds*minutes*hours
