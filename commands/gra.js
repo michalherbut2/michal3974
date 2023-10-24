@@ -1,3 +1,5 @@
+const convertData = require("../computings/convertData");
+const formatTable = require("../computings/formatTable");
 const getServerData = require("../computings/getServerData");
 
 module.exports = {
