@@ -16,6 +16,7 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
+    if (message.channel.id !== "1124032895263195199") return;
     switch (args[0]) {
       case "help":
         message.channel.send(

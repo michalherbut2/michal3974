@@ -1,3 +1,4 @@
+const checkInactivity = require("../computings/checkInactivity");
 const updateList = require("../computings/updateList");
 
 module.exports = {
@@ -12,6 +13,7 @@ module.exports = {
       //Set the Presence of the bot user
       bot.user.setPresence({ activities: [{ name: "Jak pogoda?" }] });
       updateList(bot)
+      checkInactivity(bot);
       // bot.user.setAvatar("img/logo.jpg");
     }
 }
