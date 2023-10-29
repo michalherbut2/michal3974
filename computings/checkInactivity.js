@@ -19,7 +19,8 @@ module.exports = client => {
     return;
   }
 
-  const intervalInMilliseconds = 86400000; // 10 sec
+  // const intervalInMilliseconds = 10_000; // 10 sec
+  const intervalInMilliseconds = 86_400_000; // 1 day
   const weekInMilliseconds = 7 * intervalInMilliseconds; // Tydzień w milisekundach
 
   setInterval(() => {

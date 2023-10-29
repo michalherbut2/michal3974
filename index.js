@@ -1,13 +1,14 @@
 const { channel } = require("diagnostics_channel");
 const { prefix, token } = require("./config.json");
 
-const { Client, Intents, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const bot = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_VOICE_STATES,
+    GatewayIntentBits.Guilds,// .GUILDS,
+    GatewayIntentBits.GuildMessages,// .GUILD_MESSAGES,
+    GatewayIntentBits.GuildMembers,// .GUILD_MEMBERS,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates// .GUILD_VOICE_STATES,
   ],
 });
 const fs = require("fs");
