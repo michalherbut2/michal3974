@@ -1,4 +1,4 @@
-const checkRole = require('../computings/checkRole');
+const checkRole = require('../../computings/checkRole');
 
 const sqlite3 = require('sqlite3').verbose();
 

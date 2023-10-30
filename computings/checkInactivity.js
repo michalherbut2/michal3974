@@ -29,7 +29,7 @@ module.exports = client => {
         const hasRole = member.roles.cache.some(role => role.id === ROLE_ID);
         if (hasRole) {
           incrementUserInactivity(member.user.id);
-          console.log("2. increased");
+          // console.log("2. increased");
 
           db.get(
             "SELECT inactivity_days FROM users WHERE user_id = ?",
