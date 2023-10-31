@@ -29,11 +29,11 @@ module.exports = {
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
       // console.log(__dirname);
-      // let resource = createAudioResource(stream);
+      const resource = createAudioResource(stream);
       // client.player.play(resource);
       // const subscription = voiceConnection.subscribe(client.player);
 
-      const resource = createAudioResource("/home/michal/Projekty/jura/michal3974/music/taczka.mp3");
+      // const resource = createAudioResource("/home/michal/Projekty/jura/michal3974/music/taczka.mp3");
       client.player.play(resource);
       client.player.on("error", error => {
         console.error(
