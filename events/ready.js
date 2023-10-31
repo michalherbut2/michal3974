@@ -11,7 +11,7 @@ module.exports = {
       );
 
       //Set the Presence of the bot user
-      bot.user.setPresence({ activities: [{ name: "Jak pogoda?" }] });
+      bot.user.setPresence({ activities: [{ name: "Jak tam pogoda?" }] });
       updateList(bot)
       checkInactivity(bot);
       // bot.user.setAvatar("img/logo.jpg");

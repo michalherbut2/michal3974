@@ -87,5 +87,17 @@ db.serialize(() => {
   );
 });
 
+bot.on("error", error => {
+  console.error("Wystąpił błąd:", error);
+});
+
+bot.on("warn", info => {
+  console.warn("Ostrzeżenie:", info);
+});
+
+bot.on("shardError", error => {
+  console.error("Błąd sharda:", error);
+});
+
 //Token needed in config.json
 bot.login(token);

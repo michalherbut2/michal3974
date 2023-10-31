@@ -29,9 +29,21 @@ module.exports = {
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
       // console.log(__dirname);
-      let resource = createAudioResource(stream);
+      // let resource = createAudioResource(stream);
+      // client.player.play(resource);
+      // const subscription = voiceConnection.subscribe(client.player);
+
+      const resource = createAudioResource("/home/michal/Projekty/jura/michal3974/music/taczka.mp3");
       client.player.play(resource);
-      const subscription = voiceConnection.subscribe(client.player);
+      client.player.on("error", error => {
+        console.error(
+          `Error: ${error.message} with resource ${error.resource.metadata.title}`
+        );
+        // player.play(getNextResource());
+      });
+      // Play "track.mp3" across two voice connections
+      voiceConnection.subscribe(client.player);
+
       message.channel.send(`gra gitara 🎵`);
     } catch (error) {
       console.error('An error occurred:', error);
