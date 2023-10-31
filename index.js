@@ -2,7 +2,7 @@ const { channel } = require("diagnostics_channel");
 const { prefix, token } = require("./config.json");
 
 const { Client, GatewayIntentBits, Collection } = require("discord.js");
-const bot = new Client({
+const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,// .GUILDS,
     GatewayIntentBits.GuildMessages,// .GUILD_MESSAGES,
@@ -16,13 +16,13 @@ const { log } = require("console");
 const resetUserInactivity = require("./computings/resetUserInactivity");
 const sqlite3 = require("sqlite3").verbose();
 
-bot.commands = new Collection();
+client.commands = new Collection();
 
 const commandFiles = fs.readdirSync('./commands/').filter(f => f.endsWith('.js'))
 for (const file of commandFiles) {
     const props = require(`./commands/${file}`)
     console.log(`${file} loaded`)
-    bot.commands.set(props.config.name, props)
+    client.commands.set(props.config.name, props)
 }
 
 const commandSubFolders = fs.readdirSync('./commands/').filter(f => !f.endsWith('.js'))
@@ -32,7 +32,7 @@ commandSubFolders.forEach(folder => {
     for (const file of commandFiles) {
         const props = require(`./commands/${folder}/${file}`)
         console.log(`${file} loaded from ${folder}`)
-        bot.commands.set(props.config.name, props)
+        client.commands.set(props.config.name, props)
     }
 });
 
@@ -42,17 +42,17 @@ const eventFiles = fs.readdirSync('./events/').filter(f => f.endsWith('.js'))
 for (const file of eventFiles) {
     const event = require(`./events/${file}`)
     if(event.once) {
-        bot.once(event.name, (...args) => event.execute(...args, bot))
+        client.once(event.name, (...args) => event.execute(...args, client))
     } else {
-        bot.on(event.name, (...args) => event.execute(...args, bot))
+        client.on(event.name, (...args) => event.execute(...args, client))
     }
 }
 
 //Command Manager
-bot.on("messageCreate", async message => {
+client.on("messageCreate", async message => {
     
-    //Check if author is a bot or the message was sent in dms and return
-    if(message.author.bot) return;
+    //Check if author is a client or the message was sent in dms and return
+    if(message.author.client) return;
     if(message.channel.type === "dm") return;
 
     //get prefix from config and prepare message so it can be read as a command
@@ -63,14 +63,14 @@ bot.on("messageCreate", async message => {
     //Check for prefix
     if(!cmd.startsWith(prefix)) return;
     //Get the command from the commands collection and then if the command is found run the command file
-    let commandfile = bot.commands.get(cmd.slice(prefix.length));
-    if(commandfile) commandfile.run(bot,message,args);
+    let commandfile = client.commands.get(cmd.slice(prefix.length));
+    if(commandfile) commandfile.run(client,message,args);
 
-    if(cmd.includes('imie')) bot.commands.get('imie').run(bot,message,args)
+    if(cmd.includes('imie')) client.commands.get('imie').run(client,message,args)
 });
 
-bot.on("voiceStateUpdate", (oldState, newState) => {
-  if (newState.member.user.bot) return;
+client.on("voiceStateUpdate", (oldState, newState) => {
+  if (newState.member.user.client) return;
 
   if (!oldState.channel && newState.channel) {
     console.log(
@@ -86,18 +86,15 @@ db.serialize(() => {
     "CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, inactivity_days INTEGER DEFAULT 0)"
   );
 });
+client
+  .on("warn", console.warn)
+  .on("error", console.error)
+  .on("shardError", console.error);
 
-bot.on("error", error => {
-  console.error("Wystąpił błąd:", error);
-});
-
-bot.on("warn", info => {
-  console.warn("Ostrzeżenie:", info);
-});
-
-bot.on("shardError", error => {
-  console.error("Błąd sharda:", error);
-});
+process
+  .on("uncaughtException", err => {})
+  .on("uncaughtExceptionMonitor", err => {})
+  .on("unhandledRejection", err => {});
 
 //Token needed in config.json
-bot.login(token);
+client.login(token);

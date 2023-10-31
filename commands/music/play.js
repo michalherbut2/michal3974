@@ -2,7 +2,7 @@ const { getVoiceConnections } = require("@discordjs/voice");
 const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, generateDependencyReport } = require("@discordjs/voice");
 const ytdl = require("ytdl-core");
 const { join } = require("node:path");
-
+const fs = require("fs");
 
 module.exports = {
   config: {
@@ -37,7 +37,7 @@ module.exports = {
       client.player.play(resource);
       client.player.on("error", error => {
         console.error(
-          `Error: ${error.message} with resource ${error.resource}`
+          `Error: ${error.message} with resource ${error}`
         );
         // player.play(getNextResource());
       });
