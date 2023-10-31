@@ -37,7 +37,7 @@ module.exports = {
       client.player.play(resource);
       client.player.on("error", error => {
         console.error(
-          `Error: ${error.message} with resource ${error.resource.metadata.title}`
+          `Error: ${error.message} with resource ${error.resource}`
         );
         // player.play(getNextResource());
       });
