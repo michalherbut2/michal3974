@@ -52,7 +52,7 @@ for (const file of eventFiles) {
 client.on("messageCreate", async message => {
     
     //Check if author is a client or the message was sent in dms and return
-    if(message.author.client) return;
+    if(message.author.bot) return;
     if(message.channel.type === "dm") return;
 
     //get prefix from config and prepare message so it can be read as a command
@@ -70,7 +70,7 @@ client.on("messageCreate", async message => {
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
-  if (newState.member.user.client) return;
+  if (newState.member.user.bot) return;
 
   if (!oldState.channel && newState.channel) {
     console.log(
@@ -92,9 +92,9 @@ client
   .on("shardError", console.error);
 
 process
-  .on("uncaughtException", err => {})
-  .on("uncaughtExceptionMonitor", err => {})
-  .on("unhandledRejection", err => {});
+  .on("uncaughtException", console.error)
+  .on("uncaughtExceptionMonitor", console.error)
+  .on("unhandledRejection", console.error);
 
 //Token needed in config.json
 client.login(token);
