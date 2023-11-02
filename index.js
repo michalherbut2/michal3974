@@ -1,7 +1,7 @@
 const { prefix, token } = require("./config.json");
 const { DisTube } = require("distube");
 const { Client, GatewayIntentBits, Collection } = require("discord.js");
-
+process.env.YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE || "true";
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds, // .GUILDS,
