@@ -1,12 +1,6 @@
-const { getVoiceConnections } = require("@discordjs/voice");
-const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, generateDependencyReport } = require("@discordjs/voice");
-const ytdl = require("ytdl-core");
-const { join } = require("node:path");
-const fs = require("fs");
-
 module.exports = {
   config: {
-    name: "play",
+    name: "graj",
     description: "play yt",
     usage: `play`,
   },
@@ -21,32 +15,16 @@ module.exports = {
     try {
       const voiceChannel = message.member.voice.channel;
       if (!voiceChannel) return message.reply("dołącz do kanału głosowego!");
-      const stream = ytdl(args[0], { filter: "audioonly" });
-      client.player = createAudioPlayer();
-      const voiceConnection=joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: voiceChannel.guild.id,
-        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+      
+      client.distube.play(voiceChannel, args.join(" "), {
+        message,
+        textChannel: message.channel,
+        member: message.member,
       });
-      // console.log(__dirname);
-      const resource = createAudioResource(stream);
-      // client.player.play(resource);
-      // const subscription = voiceConnection.subscribe(client.player);
 
-      // const resource = createAudioResource("/home/michal/Projekty/jura/michal3974/music/taczka.mp3");
-      client.player.play(resource);
-      client.player.on("error", error => {
-        console.error(
-          `Error: ${error.message} with resource ${error}`
-        );
-        // player.play(getNextResource());
-      });
-      // Play "track.mp3" across two voice connections
-      voiceConnection.subscribe(client.player);
-
-      message.channel.send(`gra gitara 🎵`);
+      // message.channel.send(`gra gitara 🎵 ${name.videoDetails.title}`);
     } catch (error) {
-      console.error('An error occurred:', error);
+      console.error('Problem:', error);
       // Handle the error here, such as sending an error message to the channel
       message.channel.send(`Wystąpił błąd podczas odtwarzania muzyki.`);
     }

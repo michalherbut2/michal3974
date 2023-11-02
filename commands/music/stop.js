@@ -1,8 +1,8 @@
 module.exports = {
   config: {
-    name: "pause",
-    description: "skip song",
-    usage: `pause`,
+    name: "stop",
+    description: "stop song",
+    usage: `stop`,
   },
 
   /**
@@ -12,7 +12,7 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    client.distube.pause(message);
-    message.channel.send(`halt 🎵`);
+    client.distube.stop(message);
+    message.channel.send(`koniec 🎵`);
   },
 };

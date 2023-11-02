@@ -12,7 +12,7 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    client.player.stop()
+    client.distube.skip(message);
     message.channel.send(`koniec 🎵`);
   },
 };
