@@ -21,11 +21,13 @@ module.exports = client => {
 
   // const intervalInMilliseconds = 10_000; // 10 sec
   const intervalInMilliseconds = 86_400_000; // 1 day
-  const weekInMilliseconds = 7 * intervalInMilliseconds; // Tydzień w milisekundach
+  // const weekInMilliseconds = 7 * intervalInMilliseconds; // Tydzień w milisekundach
 
-  setInterval(() => {
+  setInterval(async () => {
+    const commandsChannel = await client.channels.cache.get("1124032895263195199");
+    commandsChannel.send("Dodano nieobecności adminom!");
     guild.members.fetch().then(members => {
-      members.forEach(member => {
+      members.forEach(async member => {
         const hasRole = member.roles.cache.some(role => role.id === ROLE_ID);
         if (hasRole) {
           incrementUserInactivity(member.user.id);
@@ -36,11 +38,18 @@ module.exports = client => {
             [member.user.id],
             (err, row) => {
               if (err)
-                console.error("Błąd podczas pobierania informacji o użytkowniku:",err);
+                console.error(
+                  "Błąd podczas pobierania informacji o użytkowniku:",
+                  err
+                );
               if (row && row.inactivity_days >= 7) {
                 member.roles
                   .remove(role)
-                  .then(() => console.log(`Usunięto rolę ${role.name} od użytkownika ${member.user.tag}.`))
+                  .then(() =>
+                    console.log(
+                      `Usunięto rolę ${role.name} od użytkownika ${member.user.tag}.`
+                    )
+                  )
                   .catch(console.error);
                 resetUserInactivity(member.user.id);
               }
