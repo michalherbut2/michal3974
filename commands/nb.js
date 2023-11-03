@@ -20,7 +20,7 @@ module.exports = {
         console.error("Błąd podczas pobierania informacji o użytkowniku:", err);
 
       if (rows.length === 0) {
-        message.channel.send("Brak danych o plusach w bazie.");
+        message.channel.send("Brak danych o nieobecnościach w bazie.");
         return;
       }
       let index = 1;

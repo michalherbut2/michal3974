@@ -1,5 +1,5 @@
 const { prefix, token } = require("./config.json");
-const { DisTube } = require("distube");
+// const { DisTube } = require("distube");
 const { Client, GatewayIntentBits, Collection } = require("discord.js");
 process.env.YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE || "true";
 const client = new Client({
@@ -95,15 +95,16 @@ db.serialize(() => {
     "CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, inactivity_days INTEGER DEFAULT 0)"
   );
 });
-
-client.distube = new DisTube(client, {
-  // searchSongs: 5,
-  // searchCooldown: 30,
-  emitNewSongOnly: true,
-  leaveOnFinish: false,
-  emitAddSongWhenCreatingQueue: false,
-});
-listenDistube(client.distube)
+client.isPlaying = false;
+client.queue=[]
+// client.distube = new DisTube(client, {
+//   // searchSongs: 5,
+//   // searchCooldown: 30,
+//   emitNewSongOnly: true,
+//   leaveOnFinish: false,
+//   emitAddSongWhenCreatingQueue: false,
+// });
+// listenDistube(client.distube)
 
 client
   .on("warn", console.warn)
