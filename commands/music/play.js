@@ -8,9 +8,9 @@ const play = require("play-dl");
 
 module.exports = {
   config: {
-    name: "graj",
+    name: "play",
     description: "play yt",
-    usage: `graj`,
+    usage: `play`,
   },
 
   /**
