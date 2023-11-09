@@ -12,7 +12,7 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    client.queue=[]
-    client.player.stop();
+    client.queue.get(message.guild.id).queue = [];
+    client.queue.get(message.guild.id).player.stop();
   },
 };

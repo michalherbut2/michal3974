@@ -13,8 +13,8 @@ module.exports = {
 
   run: async (client, message, args) => {
     if (args[0] && !isNaN(args[0])) {
-      client.queue = client.queue.filter((v, i) => i !== +args[0]);
+      client.queue.get(message.guild.id).queue.filter((v, i) => i !== +args[0]);
       message.channel.send(`usunięto z ${args[0]} piosenkę z kolejki`);
-    } else client.player.stop();
+    } else client.queue.get(message.guild.id).player.stop();
   },
 };

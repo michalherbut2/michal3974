@@ -1,29 +1,31 @@
 const { prefix, token } = require("./config.json");
-// const { DisTube } = require("distube");
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
-process.env.YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE || "true";
+const { Client, GatewayIntentBits, Collection, IntentsBitField, Events } = require("discord.js");
+const fs = require("fs");
+const resetUserInactivity = require("./computings/resetUserInactivity");
+const loadSlashCommands = require("./computings/loadSlashCommands");
+const { log } = require("console");
+const sqlite3 = require("sqlite3").verbose();
+
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds, // .GUILDS,
+    // IntentsBitField.Flags.Guilds, // -special structure in discord.js that allows you to modify a bitfield, using functions like add() and remove()
+    GatewayIntentBits.Guilds, // .GUILDS,//
     GatewayIntentBits.GuildMessages, // .GUILD_MESSAGES,
-    GatewayIntentBits.GuildMembers, // .GUILD_MEMBERS,
+    // GatewayIntentBits.GuildMembers, // .GUILD_MEMBERS,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates, // .GUILD_VOICE_STATES,
   ],
 });
-const fs = require("fs");
-const resetUserInactivity = require("./computings/resetUserInactivity");
-const listenDistube = require("./computings/listenDistube");
-const sqlite3 = require("sqlite3").verbose();
 
 client.commands = new Collection();
 
 const commandFiles = fs
   .readdirSync("./commands/")
   .filter(f => f.endsWith(".js"));
+
 for (const file of commandFiles) {
   const props = require(`./commands/${file}`);
-  console.log(`${file} loaded`);
+  console.log(`${file} loaded`);``
   client.commands.set(props.config.name, props);
 }
 
@@ -95,16 +97,19 @@ db.serialize(() => {
     "CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, inactivity_days INTEGER DEFAULT 0)"
   );
 });
+
 client.isPlaying = false;
-client.queue=[]
-// client.distube = new DisTube(client, {
-//   // searchSongs: 5,
-//   // searchCooldown: 30,
-//   emitNewSongOnly: true,
-//   leaveOnFinish: false,
-//   emitAddSongWhenCreatingQueue: false,
-// });
-// listenDistube(client.distube)
+client.queue = new Collection();
+client.slashCommands = new Collection();
+client.buttons = new Collection();
+
+loadSlashCommands(client)
+// log(client.slashCommands.get('ping'));
+// console.log([...client.slashCommands.entries()]);
+// for (const [key, { data }] of client.slashCommands) {
+//   console.log(`${key} goes ${data.description}`);
+// }
+
 
 client
   .on("warn", console.warn)
@@ -116,5 +121,4 @@ process
   .on("uncaughtExceptionMonitor", console.error)
   .on("unhandledRejection", console.error);
 
-//Token needed in config.json
 client.login(token);

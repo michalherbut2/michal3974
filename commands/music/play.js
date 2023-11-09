@@ -8,9 +8,9 @@ const play = require("play-dl");
 
 module.exports = {
   config: {
-    name: "play",
+    name: "graj",
     description: "play yt",
-    usage: `play`,
+    usage: `graj`,
   },
 
   /**
@@ -18,19 +18,14 @@ module.exports = {
    * @param {Message} message
    * @param {String[]} args
    */
-
+//seohost
   run: async (client, message, args) => {
+    console.log("elo");
     try {
       const voiceChannel = message.member.voice.channel;
+      const serverId = message.guild.id;
       if (!voiceChannel) return message.reply("dołącz do kanału głosowego!");
 
-      // client.distube.play(voiceChannel, args.join(" "), {
-      //   message,
-      //   textChannel: message.channel,
-      //   member: message.member,
-      // });
-      // const test = await ytsr(args.join(" "), { pages: 1 }).items[0].url;
-      // console.log();
       const yt_info = await play.search(args.join(" "), {
         limit: 1,
       });
@@ -41,35 +36,58 @@ module.exports = {
         discordPlayerCompatibility: true,
       });
 
-      client.queue.push(createAudioResource(stream));
-      client.queue[client.queue.length - 1].title = title;
-      client.queue[client.queue.length - 1].durationRaw = durationRaw;
-      
+      const resource = createAudioResource(stream);
+      resource.metadata = {
+        title,
+        duration: durationRaw,
+      };
+
       const voiceConnection = joinVoiceChannel({
         channelId: voiceChannel.id,
-        guildId: voiceChannel.guild.id,
+        guildId: serverId,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
+      console.log("elo");
+      const serverQueue =
+        client.queue.get(serverId) || {
+          queue: [],
+          isPlaying: false,
+          player: null,
+        }
+      client.queue.set(serverId, serverQueue);
 
-      if (!client.isPlaying) {
-        client.player = createAudioPlayer();
-        client.player.play(client.queue[0]);
-        client.isPlaying = true;
-        client.player.on(AudioPlayerStatus.Idle, () => {
-          client.queue.shift();
-          client.queue.length
-            ? client.player.play(client.queue[0])
-            : (client.isPlaying = false);
-          message.channel.send(`piosenki w kolejce: 🎵 ${client.queue.length}`);
+      serverQueue.queue.push(resource);
+
+      if (!serverQueue.isPlaying) {
+        // client.player = createAudioPlayer();
+        serverQueue.player = createAudioPlayer();
+
+        // client.player.on(AudioPlayerStatus.Idle, () => {
+        serverQueue.player.on(AudioPlayerStatus.Idle, () => {
+          // client.queue.shift();
+          serverQueue.queue.shift();
+          serverQueue.queue.length
+            ? serverQueue.player.play(serverQueue.queue[0])
+            : (serverQueue.isPlaying = false);
+          message.channel.send(
+            `piosenki w kolejce: 🎵 ${serverQueue.queue.length}`
+          );
         });
-        client.player.on("error", error => {
+
+        serverQueue.player.on("error", error => {
           console.error(`Error: ${error.message} with resource ${error}`);
-          client.queue.shift();
+          serverQueue.queue.shift();
         });
-        voiceConnection.subscribe(client.player);
+        // client.player.play(client.queue[0]);
+        serverQueue.player.play(serverQueue.queue[0])
+        
+        voiceConnection.subscribe(serverQueue.player);
+        
+        // client.isPlaying = true;
+        serverQueue.isPlaying = true;
       }
       message.channel.send(
-        `gra gitara 🎵 piosenki w kolejce: ${client.queue.length}`
+        `gra gitara 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
       );
     } catch (error) {
       console.error("Problem:", error);

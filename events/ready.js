@@ -1,5 +1,5 @@
 const checkInactivity = require("../computings/checkInactivity");
-const updateList = require("../computings/updateList");
+// const updateList = require("../computings/updateList");
 
 module.exports = {
     name: 'ready',
@@ -12,9 +12,9 @@ module.exports = {
 
       //Set the Presence of the client user
       client.user.setPresence({ activities: [{ name: "Jak tam pogoda?" }] });
-      updateList(client)
+      // updateList(client)
       checkInactivity(client);
-      // bot.user.setAvatar("img/logo.jpg");
+      // client.user.setAvatar("img/kot_bot.jpg");
       // client.commands.get("nb").run(client, "","");
     }
 }

@@ -1,18 +1,11 @@
+const { SlashCommandBuilder } = require("discord.js");
+
 module.exports = {
-  config: {
-    name: "help",
-    description: "shows all commands",
-    usage: `help`,
-  },
-
-  /**
-   * @param {Client} client
-   * @param {Message} message
-   * @param {String[]} args
-   */
-
-  run: async (client, message, args) => {
-    message.channel.send(`## Komendy
+  data: new SlashCommandBuilder()
+    .setName("help")
+    .setDescription("Pokazuje komendy!"),
+  async execute(interaction) {
+    await interaction.reply(`## Komendy
 ### muzyczne:
 **play** - podaj nazwę z yt lub link
 **skip** - skipuje aktualną pisoenkę lub o danym numerze

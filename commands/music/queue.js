@@ -12,15 +12,13 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    if (!client.queue.length) {
+    if (!client.queue.get(message.guild.id).queue.length) {
       message.channel.send("Ludzie, tu niczego nie ma!");
     } else {
       message.channel.send(
         `Kolejka:\n${client.queue
-          .map(
-            (song, id) =>
-              `**${id ? id : "Gram"}**: ${song.title} - \`${song.durationRaw}\``
-          )
+          .get(message.guild.id)
+          .queue.map((song, id) => `**${id ? id : "Gram"}**: ${song.metadata.title} - \`${song.metadata.duration}\``)
           .slice(0, 10)
           .join("\n")}`
       );

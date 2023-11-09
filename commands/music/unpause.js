@@ -12,7 +12,7 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    client.player.unpause();
+    client.queue.get(message.guild.id).player.unpause();
     message.channel.send(`jazda 🎵`);
   },
 };
