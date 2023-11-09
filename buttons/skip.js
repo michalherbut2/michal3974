@@ -6,6 +6,6 @@ module.exports = {
   },
   async execute(interaction) {
     interaction.client.queue.get(interaction.guild.id).player.stop();
-    await interaction.reply(`dalej 🎵`);
+    await interaction.reply({ content: `dalej 🎵`, ephemeral: true });
   },
 };
