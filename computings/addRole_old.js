@@ -10,7 +10,7 @@ module.exports = (message, userID) => {
       member.roles
         .add(roleToAssign)
         .then(() => {
-          message.channel.send(`Przyznano rolę za osiągnięcie 10 plusów!`);
+          message.channel.send(`Przyznano rolę ${roleToAssign.name}!`);
         })
         .catch(error => {
           console.error("Role assignment error:", error);

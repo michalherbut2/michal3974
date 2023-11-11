@@ -12,14 +12,12 @@ module.exports = {
    */
 
   run: async (client, message, args) => {
-    if (!client.queue.get(message.guild.id).queue.length) {
+    const queue = client.queue.get(message.guild.id).queue;
+    if (!queue.length) {
       message.channel.send("Ludzie, tu niczego nie ma!");
     } else {
       message.channel.send(
-        `Kolejka:\n${client.queue
-          .get(message.guild.id)
-          .queue.map((song, id) => `**${id ? id : "Gram"}**: ${song.metadata.title} - \`${song.metadata.duration}\``)
-          .slice(0, 10)
+        `Kolejka:\n${queue.map((song, id) => `**${id ? id : "Gram"}**: ${song.metadata.title} - \`${song.metadata.duration}\``)
           .join("\n")}`
       );
     }

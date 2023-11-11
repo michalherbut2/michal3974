@@ -20,7 +20,6 @@ module.exports = {
    */
 //seohost
   run: async (client, message, args) => {
-    console.log("elo");
     try {
       const voiceChannel = message.member.voice.channel;
       const serverId = message.guild.id;
@@ -47,7 +46,6 @@ module.exports = {
         guildId: serverId,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
-      console.log("elo");
       const serverQueue =
         client.queue.get(serverId) || {
           queue: [],
@@ -70,7 +68,7 @@ module.exports = {
             ? serverQueue.player.play(serverQueue.queue[0])
             : (serverQueue.isPlaying = false);
           message.channel.send(
-            `piosenki w kolejce: 🎵 ${serverQueue.queue.length}`
+            `dodano: ${queue.song.metadata.title} - \`${song.metadata.duration}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
           );
         });
 
@@ -86,8 +84,11 @@ module.exports = {
         // client.isPlaying = true;
         serverQueue.isPlaying = true;
       }
+      const queue = client.queue.get(message.guild.id).queue;
+
+                  
       message.channel.send(
-        `gra gitara 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
+        `gra gitara ${queue.song.metadata.title} - \`${song.metadata.duration}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
       );
     } catch (error) {
       console.error("Problem:", error);
