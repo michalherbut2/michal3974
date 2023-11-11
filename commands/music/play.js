@@ -18,7 +18,7 @@ module.exports = {
    * @param {Message} message
    * @param {String[]} args
    */
-//seohost
+  //seohost
   run: async (client, message, args) => {
     try {
       const voiceChannel = message.member.voice.channel;
@@ -46,12 +46,11 @@ module.exports = {
         guildId: serverId,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
-      const serverQueue =
-        client.queue.get(serverId) || {
-          queue: [],
-          isPlaying: false,
-          player: null,
-        }
+      const serverQueue = client.queue.get(serverId) || {
+        queue: [],
+        isPlaying: false,
+        player: null,
+      };
       client.queue.set(serverId, serverQueue);
 
       serverQueue.queue.push(resource);
@@ -68,7 +67,7 @@ module.exports = {
             ? serverQueue.player.play(serverQueue.queue[0])
             : (serverQueue.isPlaying = false);
           message.channel.send(
-            `dodano: ${queue.song.metadata.title} - \`${song.metadata.duration}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
+            `🎵 piosenki w kolejce: ${serverQueue.queue.length}`
           );
         });
 
@@ -77,22 +76,21 @@ module.exports = {
           serverQueue.queue.shift();
         });
         // client.player.play(client.queue[0]);
-        serverQueue.player.play(serverQueue.queue[0])
-        
+        serverQueue.player.play(serverQueue.queue[0]);
+
         voiceConnection.subscribe(serverQueue.player);
-        
+
         // client.isPlaying = true;
         serverQueue.isPlaying = true;
       }
-      const queue = client.queue.get(message.guild.id).queue;
 
-                  
+
       message.channel.send(
-        `gra gitara ${queue.song.metadata.title} - \`${song.metadata.duration}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
+        `gra gitara ${title} - \`${durationRaw}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
       );
     } catch (error) {
       console.error("Problem:", error);
-      message.channel.send(`Wystąpił błąd podczas odtwarzania muzyki.`);
+      message.channel.send(`Wystąpił błąd podczas odtwarzania muzyki.`, error);
     }
   },
 };
