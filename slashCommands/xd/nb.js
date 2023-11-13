@@ -1,7 +1,6 @@
 const betterSqlite3 = require("better-sqlite3");
-// const sqlite3 = require("sqlite3").verbose();
-// const db = new sqlite3.Database("./user_activity.db");
 const { SlashCommandBuilder } = require("discord.js");
+const getNick = require("../../computings/getNick");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,11 +13,7 @@ module.exports = {
     let index = 1;
     let mes = "Lista nieobecnośći (7 nieobecności utrata admina):";
     for (const row of rows) {
-      const member = await message.guild.members.fetch(row.user_id);
-      const nick = member?.nickname
-        ? member.nickname
-        : member?.user?.globalName;
-      mes += `\n${index++}. ${nick.padEnd(19)} - ${
+      mes += `\n${index++}. ${await getNick(interaction, row.user_id)} - ${
         row.inactivity_days
       } nieobecności`;
     }
