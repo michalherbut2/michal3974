@@ -38,11 +38,7 @@ module.exports = {
       isSet = true;
     } else plusesNum = +plusesNum;
 
-    await db
-      .prepare(
-        "CREATE TABLE IF NOT EXISTS pluses (userId TEXT, pluses INTEGER)"
-      )
-      .run();
+    
 
     // Sprawdź, czy użytkownik już istnieje w bazie danych
     const row = db

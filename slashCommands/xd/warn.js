@@ -91,11 +91,7 @@ module.exports = {
 
 async function dodajOstrzezenie(interaction, userId, db) {
   // const db = new sqlite.Database("./warns.db");
-  await db
-    .prepare(
-      "CREATE TABLE IF NOT EXISTS ostrzezenia (userId TEXT PRIMARY KEY, warnings INTEGER DEFAULT 0)"
-    )
-    .run();
+  
   // const db = await sqlite.open("./baza.db");
   await db
     .prepare("INSERT OR IGNORE INTO ostrzezenia (userId) VALUES (?)")

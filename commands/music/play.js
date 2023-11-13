@@ -86,7 +86,7 @@ module.exports = {
 
 
       message.channel.send(
-        `gra gitara ${title} - \`${durationRaw}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
+        `gra gitara **${title}** - \`${durationRaw}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
       );
     } catch (error) {
       console.error("Problem:", error);

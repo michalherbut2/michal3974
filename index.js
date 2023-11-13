@@ -1,10 +1,17 @@
 const { prefix, token } = require("./config.json");
-const { Client, GatewayIntentBits, Collection, IntentsBitField, Events } = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+  Collection,
+  IntentsBitField,
+  Events,
+} = require("discord.js");
 const fs = require("fs");
 const resetUserInactivity = require("./computings/resetUserInactivity");
 const loadSlashCommands = require("./computings/loadSlashCommands");
-const { log } = require("console");
-const sqlite3 = require("sqlite3").verbose();
+const betterSqlite3 = require("better-sqlite3");
+// const { log } = require("console");
+// const sqlite3 = require("sqlite3").verbose();
 
 const client = new Client({
   intents: [
@@ -25,7 +32,8 @@ const commandFiles = fs
 
 for (const file of commandFiles) {
   const props = require(`./commands/${file}`);
-  console.log(`${file} loaded`);``
+  console.log(`${file} loaded`);
+  ``;
   client.commands.set(props.config.name, props);
 }
 
@@ -91,25 +99,41 @@ client.on("voiceStateUpdate", (oldState, newState) => {
   }
 });
 
-const db = new sqlite3.Database("./user_activity.db");
-db.serialize(() => {
-  db.run(
+// const user_activityDb = new sqlite3.Database("./user_activity.db");
+const user_activityDb = betterSqlite3("user_activity.db");
+const plusyDb = betterSqlite3("plusy.db");
+const warnsDb = betterSqlite3("warns.db");
+
+user_activityDb
+  .prepare(
     "CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, inactivity_days INTEGER DEFAULT 0)"
-  );
-});
+  )
+  .run();
+
+plusyDb
+  .prepare(
+    "CREATE TABLE IF NOT EXISTS pluses (userId TEXT, pluses INTEGER)"
+    // 'CREATE TABLE IF NOT EXISTS pluses (userId TEXT PRIMARY KEY, pluses INTEGER)'
+  )
+  .run();
+
+warnsDb
+  .prepare(
+    "CREATE TABLE IF NOT EXISTS ostrzezenia (userId TEXT PRIMARY KEY, warnings INTEGER DEFAULT 0)"
+  )
+  .run();
 
 client.isPlaying = false;
 client.queue = new Collection();
 client.slashCommands = new Collection();
 client.buttons = new Collection();
 
-loadSlashCommands(client)
+loadSlashCommands(client);
 // log(client.slashCommands.get('ping'));
 // console.log([...client.slashCommands.entries()]);
 // for (const [key, { data }] of client.slashCommands) {
 //   console.log(`${key} goes ${data.description}`);
 // }
-
 
 client
   .on("warn", console.warn)
