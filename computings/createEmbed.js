@@ -1,9 +1,9 @@
 // at the top of your file
 const { EmbedBuilder } = require("discord.js");
 
-module.exports = async (interaction) => {
+module.exports = async () => {
   // inside a command, event listener, etc.
-  const exampleEmbed = new EmbedBuilder()
+  return new EmbedBuilder()
     .setColor(0x0099ff)
     .setTitle("Some title")
     .setURL("https://discord.js.org/")
@@ -32,5 +32,4 @@ module.exports = async (interaction) => {
       iconURL: "https://i.imgur.com/AfFp7pu.png",
     });
 
-  channel.send({ embeds: [exampleEmbed] });
 }
