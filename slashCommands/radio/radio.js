@@ -88,7 +88,12 @@ async function playRadio(interaction) {
     //   interaction.followUp(`🎵 piosenki w kolejce: ${radioQueue.queue.length}`);
     // });
     radioQueue.isPlaying = true;
-    radioQueue.player.play(radioQueue.queue[0]);
+    // radioQueue.player.play(radioQueue.queue[0]);
+    radioQueue.player.play(
+      createAudioResource(
+        "http://x.radiokaszebe.pl:9000/;?type=http&nocache=87"
+      )
+    );
   }
   radioQueue.player.unpause();
 
