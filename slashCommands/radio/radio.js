@@ -67,9 +67,9 @@ module.exports = {
   },
 };
 async function playRadio(interaction) {
-  const station = interaction.options.getString("station");
+  // const station = interaction.options.getString("station");
 
-  const radioQueue = interaction.client.radio.get(interaction.guild.id);
+  const radioQueue = await interaction.client.radio.get(interaction.guild.id);
   const connection = joinVoiceChannel({
     channelId: interaction.member.voice.channelId,
     guildId: interaction.guildId,
@@ -88,12 +88,7 @@ async function playRadio(interaction) {
     //   interaction.followUp(`🎵 piosenki w kolejce: ${radioQueue.queue.length}`);
     // });
     radioQueue.isPlaying = true;
-    // radioQueue.player.play(radioQueue.queue[0]);
-    radioQueue.player.play(
-      createAudioResource(
-        "http://x.radiokaszebe.pl:9000/;?type=http&nocache=87"
-      )
-    );
+    radioQueue.player.play(radioQueue.queue[0]);
   }
   radioQueue.player.unpause();
 
