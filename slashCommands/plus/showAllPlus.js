@@ -4,32 +4,30 @@ const getNick = require("../../computings/getNick");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("top_plusy")
-    .setDescription(
-      "Wyświetla top 10 użytkowników z największą ilością plusów"
-    ),
+    .setName("poka_wszystkie_plusy")
+    .setDescription("Wyświetla plusy wszystkich użytkowników"),
   async execute(interaction) {
-    const db = betterSqlite3("plusy.db");
+    // const db = betterSqlite3("plusy.db");
+    const db = new betterSqlite3(`db/db_${interaction.guild.id}.db`);
+
 
     const rows = db
-      .prepare(
-        "SELECT userId, pluses FROM pluses ORDER BY pluses DESC LIMIT 10"
-      )
+      .prepare("SELECT * FROM plus ORDER BY plus_num DESC")
       .all();
     db.close();
     if (rows.length === 0) {
       return interaction.reply("Brak danych o plusach w bazie.");
     }
 
-    let topUsers = "Top 10 użytkowników z największą ilością plusów:\n";
+    let topUsers = "## Wszystkie plusy:\n";
 
     const result = (
       await Promise.all(
         rows.map(
           async (row, index) =>
-            `${index + 1}. ${await getNick(interaction, row.userId)} - ${
-              row.pluses
-            } plusów`
+            `${index + 1}. ${await getNick(interaction, row.user_id)} - ${
+              row.plus_num
+            } plusów za: **${row.reason}**`
         )
       )
     ).join("\n");

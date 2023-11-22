@@ -56,7 +56,7 @@ module.exports = client => {
       }
     } else if (interaction.isButton()) {
       const { buttons } = client
-      console.log(buttons);
+      // console.log(buttons);
       const { customId } = interaction
       const button = buttons.get(customId)
       if (!button) return new Error('There is no code for this button')

@@ -7,19 +7,22 @@ module.exports = {
     .setName("nb")
     .setDescription("Pokazuje nieobeczności adminów kiszonki!"),
   async execute(interaction) {
-    const db = new betterSqlite3("./user_activity.db");
-    const rows = db.prepare("SELECT * FROM users").all();
+    const db = new betterSqlite3(`db/db_${interaction.guild.id}.db`);
+
+    const rows = db.prepare("SELECT * FROM inactivity").all();
 
     let index = 1;
     let mes = "```Lista nieobecnośći (7 nieobecności utrata admina):";
     for (const row of rows) {
-      mes += `\n${index++}. ${(await getNick(interaction, row.user_id)).padEnd(19)} - ${
-        row.inactivity_days
-      } nieobecności`;
+      console.log(row);
+      console.log(row.user_id);
+      mes += `\n${index++}. ${(await getNick(interaction, row.user_id)).padEnd(
+        21
+      )} - ${row.inactivity_num} nieobecności`;
     }
 
     db.close();
-    await interaction.reply(mes+"```");
+    await interaction.reply(mes + "```");
   },
 };
 

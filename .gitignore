@@ -23,6 +23,7 @@ config.json
 music
 computings_old
 commands_old
+.vscode
 
 npm-debug.log*
 yarn-debug.log*

@@ -46,44 +46,38 @@ module.exports = {
         guildId: serverId,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
-      const serverQueue = client.queue.get(serverId) || {
-        queue: [],
-        isPlaying: false,
-        player: null,
-      };
-      client.queue.set(serverId, serverQueue);
-
+      // client.test.voiceConnection.push(voiceConnection).
+      const serverQueue = client.queue.get(serverId)
+      // console.log(client.queue);
       serverQueue.queue.push(resource);
+ 
+      
+      serverQueue.player.on("error", error => {
+        console.error(`Error: ${error.message} with resource ${error}`);
+
+        serverQueue.queue.shift();
+      });
 
       if (!serverQueue.isPlaying) {
-        // client.player = createAudioPlayer();
-        serverQueue.player = createAudioPlayer();
 
-        // client.player.on(AudioPlayerStatus.Idle, () => {
+        // serverQueue.player=createAudioPlayer()
+       
         serverQueue.player.on(AudioPlayerStatus.Idle, () => {
-          // client.queue.shift();
           serverQueue.queue.shift();
           serverQueue.queue.length
             ? serverQueue.player.play(serverQueue.queue[0])
-            : (serverQueue.isPlaying = false);
+            : (serverQueue.isPlaying = false); 
           message.channel.send(
             `🎵 piosenki w kolejce: ${serverQueue.queue.length}`
           );
         });
 
-        serverQueue.player.on("error", error => {
-          console.error(`Error: ${error.message} with resource ${error}`);
-          serverQueue.queue.shift();
-        });
-        // client.player.play(client.queue[0]);
         serverQueue.player.play(serverQueue.queue[0]);
 
-        voiceConnection.subscribe(serverQueue.player);
-
-        // client.isPlaying = true;
         serverQueue.isPlaying = true;
       }
 
+      voiceConnection.subscribe(serverQueue.player);
 
       message.channel.send(
         `gra gitara **${title}** - \`${durationRaw}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`

@@ -1,17 +1,9 @@
 const { prefix, token } = require("./config.json");
-const {
-  Client,
-  GatewayIntentBits,
-  Collection,
-  IntentsBitField,
-  Events,
-} = require("discord.js");
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const fs = require("fs");
 const resetUserInactivity = require("./computings/resetUserInactivity");
 const loadSlashCommands = require("./computings/loadSlashCommands");
-const betterSqlite3 = require("better-sqlite3");
-// const { log } = require("console");
-// const sqlite3 = require("sqlite3").verbose();
+const reactOnRectutation = require("./computings/reactOnRectutation");
 
 const client = new Client({
   intents: [
@@ -84,50 +76,26 @@ client.on("messageCreate", async message => {
   let commandfile = client.commands.get(cmd.slice(prefix.length));
   if (commandfile) commandfile.run(client, message, args);
 
-  if (cmd.includes("imie"))
-    client.commands.get("imie").run(client, message, args);
+  if (cmd.includes("imie")) await reactOnRectutation(message);
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
   if (newState.member.user.bot) return;
-
-  if (!oldState.channel && newState.channel) {
+  const interval = client.inactivity.get(newState.guild.id);
+  if (interval && !interval?._destroyed) {
     // console.log(
     //   `${newState.member.user.tag} dołączył do kanału głosowego ${newState.channel.name}.`
     // );
-    resetUserInactivity(newState.member.user.id);
+    resetUserInactivity(newState.member.user.id, newState.guild.id);
   }
 });
 
-// const user_activityDb = new sqlite3.Database("./user_activity.db");
-const user_activityDb = betterSqlite3("user_activity.db");
-const plusyDb = betterSqlite3("plusy.db");
-const warnsDb = betterSqlite3("warns.db");
-
-user_activityDb
-  .prepare(
-    "CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, inactivity_days INTEGER DEFAULT 0)"
-  )
-  .run();
-
-plusyDb
-  .prepare(
-    "CREATE TABLE IF NOT EXISTS pluses (userId TEXT, pluses INTEGER)"
-    // 'CREATE TABLE IF NOT EXISTS pluses (userId TEXT PRIMARY KEY, pluses INTEGER)'
-  )
-  .run();
-
-warnsDb
-  .prepare(
-    "CREATE TABLE IF NOT EXISTS ostrzezenia (userId TEXT PRIMARY KEY, warnings INTEGER DEFAULT 0)"
-  )
-  .run();
-
-client.isPlaying = false;
 client.queue = new Collection();
+client.radio = new Collection();
 client.slashCommands = new Collection();
 client.buttons = new Collection();
-
+client.config = new Collection();
+client.inactivity = new Collection();
 loadSlashCommands(client);
 // log(client.slashCommands.get('ping'));
 // console.log([...client.slashCommands.entries()]);

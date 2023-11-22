@@ -16,7 +16,7 @@ module.exports = (interaction, userID, roleID) => {
         .catch(error => {
           console.error("Role assignment error:", error);
           interaction.followUp(
-            "Wystąpił problem podczas próby przydzielenia roli."
+            "Wystąpił problem podczas próby usunięcia roli."
           );
         });
     }

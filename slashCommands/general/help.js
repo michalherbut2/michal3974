@@ -13,16 +13,20 @@ module.exports = {
 **unpause** - wznawia muzykę
 **queue** - wyświetla kolejkę piosenek
 **stop** - kończy zabawę
-**panel** - daje panel
+**/panel** - daje panel
+**/radio** - odpala radio
 ### ogólne:
-**nb** - pokazuje nieobecnośći adminów
-**pokaplusy** - pokazuje twoj plusy
-**topplusy** - pokazuje top 10 plusów
+**/nb** - pokazuje nieobecnośći adminów
+**/poka_plusy** - pokazuje twoje plusy
+**/poka_wszystkie_plusy** - pokazuje wszystkie plusy
 ### ostrzeżenia:
 **/poka_wszystkie_ostrzezenia** - pokazuje wszystkie ostrzeżenia
-**/poka_ostrzezenie** - pokazuje ostrzeżenia danej osoby
+**/poka_ostrzezenia** - pokazuje ostrzeżenia danej osoby
 **/ostrzezenie dodaj** - dodaje ostrzeżenie danej osoby [tylko dla adminów]
 **/ostrzezenie usun** - usuwa ostrzeżenie danej osoby [tylko dla adminów]
-**/ostrzezenie czysc** - usuwa wszystkie ostrzeżenia danej osoby [tylko dla adminów]`);
+**/ostrzezenie czysc** - usuwa wszystkie ostrzeżenia danej osoby [tylko dla adminów]
+**/config** - konfiguruje działanie bota  [tylko dla adminów]
+**/sprawdzaj_nieobecności** - sprawdza nieobecnośći [tylko dla adminów]
+`);
   },
 };

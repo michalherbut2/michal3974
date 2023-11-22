@@ -22,10 +22,9 @@
     "mime-db": "^1.50.0",
     "mime-types": "^2.1.33",
     "node-fetch": "^3.1.1",
+    "nodemon": "^3.0.1",
     "ow": "^0.27.0",
     "play-dl": "^1.9.7",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.6",
     "tr46": "^0.0.3",
     "ts-mixer": "^6.0.0",
     "tslib": "^2.3.1",
@@ -38,7 +37,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ."
+    "start": "node .",
+    "dev": "nodemon --delay 5 ."
   },
   "repository": {
     "type": "git",

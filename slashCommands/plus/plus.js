@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const betterSqlite3 = require("better-sqlite3");
-const addRole = require("../../computings/addRole_old");
+const addRole = require("../../computings/addRole");
 const getNick = require("../../computings/getNick");
 
 module.exports = {
@@ -19,12 +19,22 @@ module.exports = {
         .setName("uzytkownik")
         .setDescription("Użytkownik, któremu chcesz dodać plusy")
         .setRequired(true)
+    )
+    .addStringOption(option =>
+      option
+        .setName("powód")
+        .setDescription("Podów plusa, co zrobił")
+        .setRequired(true)
     ),
   async execute(interaction) {
-    const db = betterSqlite3("plusy.db");
+    const guildId = interaction.guild.id
+    const config = interaction.client.config.get(guildId)
+    // const db = betterSqlite3("plusy.db");
+    const db = new betterSqlite3(`db/db_${guildId}.db`);
 
     let plusesNum = interaction.options.getString("liczba_plusow");
     const mentionedUser = interaction.options.getUser("uzytkownik");
+    const reason = interaction.options.getString("powód");
 
     if (!mentionedUser)
       return interaction.reply("Nie można znaleźć podanego użytkownika.");
@@ -38,32 +48,28 @@ module.exports = {
       isSet = true;
     } else plusesNum = +plusesNum;
 
-    
-
     // Sprawdź, czy użytkownik już istnieje w bazie danych
     const row = db
-      .prepare("SELECT pluses FROM pluses WHERE userId = ?")
+      .prepare("SELECT plus_num,reason FROM plus WHERE user_id = ?")
       .get(userId);
-
-    const existingPluses = row ? row.pluses : 0;
+    // console.log(row?.reason);
+    const existingPluses = row ? row.plus_num : 0;
 
     // Dodaj plusy do istniejącej liczby lub utwórz nowy wpis
     const totalPluses = isSet ? plusesNum : existingPluses + plusesNum;
 
-    if (totalPluses >= 10) {
-      addRole(interaction, userId);
-    }
+    if (totalPluses >= 10) addRole(interaction, userId, config.rola_za_punkty);
 
     db.prepare(
       row
-        ? "UPDATE pluses SET pluses = $totalPluses WHERE userId = $userId"
-        : "INSERT INTO pluses (pluses, userId) VALUES ($totalPluses, $userId)"
-    ).run({ totalPluses, userId });
+        ? `UPDATE plus SET plus_num = $totalPluses, reason = reason || ', ${reason}' WHERE user_id = $userId`
+        : "INSERT INTO plus (plus_num, user_id, reason) VALUES ($totalPluses, $userId, $reason)"
+    ).run({ totalPluses, userId, reason });
 
     db.close();
 
     interaction.reply(
-      `${plusesNum} plus(y) zostały dodane dla użytkownika <@${userId}>.`
+      `<@${userId}> dostał ${plusesNum} plus(y) za: **${reason}**.`
     );
   },
 };
