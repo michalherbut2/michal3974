@@ -77,6 +77,7 @@ async function playRadio(interaction) {
   });
   
   // const audioResource = createAudioResource(station);
+  connection.subscribe(radioQueue.player);
 
   if (!radioQueue.isPlaying) {
     // radioQueue.player.on(AudioPlayerStatus.Idle, () => {
@@ -93,7 +94,6 @@ async function playRadio(interaction) {
 
   // console.log(+station);
   // radioQueue.queue.push(audioResource);
-  connection.subscribe(radioQueue.player);
 
   interaction.reply(`Odtwarzam Radio Kaszëbë!`);
 }
