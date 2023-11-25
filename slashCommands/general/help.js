@@ -35,7 +35,6 @@ module.exports = {
     await interaction.reply({ embeds: [createEmbed("Komendy", content)] });
   },
 };
-  // "token": "MTAwNTE2MTI1MzEyOTQzMzE1OA.G_fL6o.xtVhVCjK0GZX-WCv5nRcAp-p3tmKbR5Wj-G9Lk",
 const content = `### muzyczne:
 **play** - podaj nazwę z yt lub link
 **skip** - skipuje aktualną pisoenkę lub o danym numerze

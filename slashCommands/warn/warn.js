@@ -4,6 +4,8 @@ const removeRole = require("../../computings/removeRole");
 const betterSqlite3 = require("better-sqlite3");
 const { createEmbed } = require("../../computings/createEmbed");
 
+const warningEmoji = '<a:uwaga:1175724533076992081>'
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ostrzezenie")
@@ -119,8 +121,15 @@ async function addWarn(interaction, userId, db) {
   } else
     content += `W nagrodę za Twoje zasługi <@${userId}> otrzymujesz banicję`
   
-  interaction.reply({embeds: [createEmbed("Ostrzeżenie! <a:kaczka:1172071696379940894>",content, 0xff2200)]}
-  );
+  interaction.reply({
+    embeds: [
+      createEmbed(
+        `${warningEmoji} Ostrzeżenie! ${warningEmoji}`,
+        content,
+        0xff2200
+      ),
+    ],
+  });
 }
 
 async function removeWarn(interaction, userId, db) {
