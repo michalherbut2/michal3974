@@ -20,7 +20,6 @@ module.exports = async client => {
         console.log("bufersuje muzyke!");
       });
       this.player.on(AudioPlayerStatus.Idle, () => {
-        // console.log(se);
         this.queue.shift();
         this.queue.length
           ? this.player.play(this.queue[0])
@@ -30,6 +29,10 @@ module.exports = async client => {
             createSimpleEmbed(`🎵 piosenki w kolejce: ${this.queue.length}`),
           ],
         });
+      });
+      this.player.on("error", error => {
+        console.error(`Error: ${error.message} with resource ${error}`);
+        this.queue.shift();
       });
     }
   }

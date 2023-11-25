@@ -1,12 +1,6 @@
-const {
-  joinVoiceChannel,
-  createAudioResource,
-  createAudioPlayer,
-  AudioPlayerStatus,
-} = require("@discordjs/voice");
+const { joinVoiceChannel, createAudioResource } = require("@discordjs/voice");
 const play = require("play-dl");
 const {
-  createEmbed,
   createSimpleEmbed,
   createWarningEmbed,
 } = require("../../computings/createEmbed");
@@ -28,7 +22,10 @@ module.exports = {
     try {
       const voiceChannel = message.member.voice.channel;
       const serverId = message.guild.id;
-      if (!voiceChannel) return message.reply("dołącz do kanału głosowego! :uwaga:");
+      if (!voiceChannel)
+        return message.reply({
+          embeds: [createWarningEmbed("dołącz do kanału głosowego!")],
+        });
 
       const yt_info = await play.search(args.join(" "), {
         limit: 1,
@@ -51,37 +48,18 @@ module.exports = {
         guildId: serverId,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
-      // client.test.voiceConnection.push(voiceConnection).
+
       const serverQueue = client.queue.get(serverId);
       serverQueue.channel = message.channel;
-      // console.log(client.queue);
       serverQueue.queue.push(resource);
 
-      // serverQueue.player.on("error", error => {
-      //   console.error(`Error: ${error.message} with resource ${error}`);
-
-      //   serverQueue.queue.shift();
-      // });
-
       if (!serverQueue.isPlaying) {
-        // serverQueue.player=createAudioPlayer()
-
-        // serverQueue.player.on(AudioPlayerStatus.Idle, () => {
-        //   serverQueue.queue.shift();
-        //   serverQueue.queue.length
-        //     ? serverQueue.player.play(serverQueue.queue[0])
-        //     : (serverQueue.isPlaying = false);
-        //   message.channel.send(
-        //     `🎵 piosenki w kolejce: ${serverQueue.queue.length}`
-        //   );
-        // });
-
         serverQueue.player.play(serverQueue.queue[0]);
-
         serverQueue.isPlaying = true;
       }
 
       voiceConnection.subscribe(serverQueue.player);
+
       const content = `gra gitara **${title}** - \`${durationRaw}\`\n🎵 piosenki w kolejce: ${serverQueue.queue.length}`;
       message.channel.send({
         embeds: [createSimpleEmbed(content)],

@@ -2,9 +2,13 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const addRole = require("../../computings/addRole");
 const removeRole = require("../../computings/removeRole");
 const betterSqlite3 = require("better-sqlite3");
-const { createEmbed } = require("../../computings/createEmbed");
+const {
+  createEmbed,
+  createSimpleEmbed,
+  createWarningEmbed,
+} = require("../../computings/createEmbed");
 
-const warningEmoji = '<a:uwaga:1175724533076992081>'
+const warningEmoji = "<a:uwaga:1175724533076992081>";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -57,7 +61,6 @@ module.exports = {
   async execute(interaction) {
     const subCommand = interaction.options.getSubcommand();
     const targetUser = interaction.options.getUser("uzytkownik");
-    // console.log(interaction.guild.name, interaction.guild.id);
     const db = new betterSqlite3(`db/db_${interaction.guild.id}.db`);
 
     switch (subCommand) {
@@ -71,7 +74,9 @@ module.exports = {
         await clearWarns(interaction, targetUser.id, db);
         break;
       default:
-        interaction.reply("Nieznane polecenie!");
+        interaction.reply({
+          embeds: [createWarningEmbed("Nieznane polecenie!")],
+        });
         break;
     }
     db.close();
@@ -80,49 +85,51 @@ module.exports = {
 
 async function addWarn(interaction, userId, db) {
   const reason = interaction.options.getString("powod");
-  const config = await getConfig(db);
+  const guildId = interaction.guild.id;
+  const config = interaction.client.config.get(guildId);
+  const {
+    rola_za_1_ostrzerzenie: warnRole1,
+    rola_za_2_ostrzerzenie: warnRole2,
+    rola_za_3_ostrzerzenie: warnRole3,
+  } = config;
   let warnNum = await getWarns(userId, db);
 
-  if (warnNum++)
-    await db
-      .prepare(
-        `UPDATE warn SET warn_num = warn_num + 1, reason = reason || ', ${reason}' WHERE user_id = ?`
-      )
-      .run(userId);
-  else
-    await db
-      .prepare("INSERT OR IGNORE INTO warn (user_id, reason) VALUES (?,?)")
-      .run(userId, reason);
+  const sql = warnNum++
+    ? `UPDATE warn SET warn_num = warn_num + 1, reason = reason || ', ' || ? WHERE user_id = ?`
+    : "INSERT INTO warn (reason, user_id) VALUES (?, ?)";
 
-  const text = `<@${userId}> nareszcie dostał 2. ostrzerzenie za **${reason}**!${
+  await db.prepare(sql).run(reason, userId);
+
+  const text = `<@${userId}> nareszcie dostał ${warnNum}. ostrzerzenie za **${reason}**!${
     warnNum === 3 ? "\n# Potem ban" : ""
-    }`;
-  
-  let content = text + '\n';
-  
-  if (warnNum == 1 && config?.rola_za_1_ostrzerzenie) {
-    await addRole(interaction, userId, config.rola_za_1_ostrzerzenie);
-    content += `W nagrodę <@${userId}> przez dzień nie możesz pisać!`;
-    setTimeout(() => {
-      removeRole(interaction, userId, config?.rola_za_1_ostrzerzenie);
-    }, 1000 * 60 * 60 * 24); // dzień
-  } else if (warnNum == 2 && config?.rola_za_2_ostrzerzenie) {
-    await addRole(interaction, userId, config.rola_za_2_ostrzerzenie);
-    content += `W nagrodę <@${userId}> przez 3 dni nie możesz pisać i gadać!`
-    setTimeout(() => {
-      removeRole(interaction, userId, config?.rola_za_2_ostrzerzenie);
-    }, 1000 * 60 * 60 * 24 * 3);
-  } else if (warnNum == 3 && config?.rola_za_3_ostrzerzenie) {
-    await addRole(interaction, userId, config.rola_za_3_ostrzerzenie);
-    content += `W nagrodę <@${userId}> przez tydzień nie możesz pisać i gadać!`
-    setTimeout(() => {
-      removeRole(interaction, userId, config?.rola_za_3_ostrzerzenie);
-    }, 1000 * 60 * 60 * 24 * 7);
-  } else
-    content += `W nagrodę za Twoje zasługi <@${userId}> otrzymujesz banicję`
-  
+  }`;
+
+  let content = text + "\n";
+  if (warnRole1) {
+    if (warnNum == 1) {
+      await addRole(interaction, userId, warnRole1);
+      content += `W nagrodę <@${userId}> przez dzień nie możesz pisać!`;
+      setTimeout(() => {
+        removeRole(interaction, userId, warnRole1);
+      }, 1000 * 60 * 60 * 24); // dzień
+    } else if (warnNum == 2) {
+      await addRole(interaction, userId, warnRole2);
+      content += `W nagrodę <@${userId}> przez 3 dni nie możesz pisać i gadać!`;
+      setTimeout(() => {
+        removeRole(interaction, userId, warnRole2);
+      }, 1000 * 60 * 60 * 24 * 3);
+    } else if (warnNum == 3) {
+      await addRole(interaction, userId, warnRole3);
+      content += `W nagrodę <@${userId}> przez tydzień nie możesz pisać i gadać!`;
+      setTimeout(() => {
+        removeRole(interaction, userId, warnRole3);
+      }, 1000 * 60 * 60 * 24 * 7);
+    } else
+      content += `W nagrodę za Twoje zasługi <@${userId}> otrzymujesz banicję`;
+  }
+
   interaction.reply({
-    embeds: [
+    content: `<@${userId}>`, embeds: [
       createEmbed(
         `${warningEmoji} Ostrzeżenie! ${warningEmoji}`,
         content,
@@ -140,28 +147,25 @@ async function removeWarn(interaction, userId, db) {
     .run(userId);
 
   const warnNum = await getWarns(userId, db);
-  interaction.reply(
-    `Usunięto ostatnie ostrzeżenie dla <@${userId}>. Razem ma teraz ${warnNum} ostrzeżeń.`
-  );
+  const content = `Usunięto ostatnie ostrzeżenie dla <@${userId}>. Razem ma teraz ${warnNum} ostrzeżeń.`;
+  interaction.reply({
+    content: `<@${userId}>`,
+    embeds: [createSimpleEmbed(content)],
+  });
 }
 
 async function clearWarns(interaction, userId, db) {
   await db.prepare("DELETE FROM warn WHERE user_id = ?").run(userId);
-
-  interaction.reply(`Wyczyszczono wszystkie ostrzeżenia dla <@${userId}>.`);
+  const content = `Wyczyszczono wszystkie ostrzeżenia dla <@${userId}>.`;
+  interaction.reply({
+    content: `<@${userId}>`,
+    embeds: [createSimpleEmbed(content)],
+  });
 }
 
 async function getWarns(userId, db) {
   const result = await db
     .prepare("SELECT warn_num FROM warn WHERE user_id = ?")
     .get(userId);
-  // console.log(result);
   return result?.warn_num || 0;
 }
-
-const getServerConfig = async db =>
-  await db.prepare("SELECT * FROM config").all();
-const getConfig = async db =>
-  Object.fromEntries(
-    (await getServerConfig(db)).map(item => [item.key, item.value])
-  );

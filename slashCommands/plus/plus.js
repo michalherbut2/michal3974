@@ -59,7 +59,6 @@ module.exports = {
     const pointRole = config.rola_za_punkty;
     const db = new betterSqlite3(`db/db_${guildId}.db`);
 
-
     if (!targetUser)
       return interaction.reply("Nie można znaleźć podanego użytkownika.");
 
@@ -80,19 +79,17 @@ module.exports = {
         break;
     }
     db.close();
-
   },
 };
 
 async function addPlus(interaction, userId, db, pointRole) {
-
   const plusNumToAdd = interaction.options.getInteger("liczba_plusow");
   const reason = interaction.options.getString("powod");
   const plusNum = await getPlus(userId, db);
-  const totalPlusNum = plusNum + plusNumToAdd
+  const totalPlusNum = plusNum + plusNumToAdd;
 
   console.log(pointRole);
-  
+
   if (totalPlusNum >= 10) addRole(interaction, userId, pointRole);
 
   db.prepare(
@@ -102,26 +99,37 @@ async function addPlus(interaction, userId, db, pointRole) {
   ).run(plusNumToAdd, reason, userId);
 
   const content = `<@${userId}> dostał **${plusNumToAdd}** plus(y) za: **${reason}**! Razem ma **${totalPlusNum}** plusy.`;
-  interaction.reply({ embeds: [createSimpleEmbed(content)] }); 
+  interaction.reply({
+    content: `<@${userId}>`,
+    embeds: [createSimpleEmbed(content)],
+  });
 }
 
 async function removePlus(interaction, userId, db) {
   const plusNumToRemove = interaction.options.getInteger("liczba_plusow");
   const plusNum = await getPlus(userId, db);
-  const totalPlusNum = plusNum - plusNumToRemove > 0 ? plusNum - plusNumToRemove : 0
+  const totalPlusNum =
+    plusNum - plusNumToRemove > 0 ? plusNum - plusNumToRemove : 0;
   await db
     .prepare("UPDATE plus SET plus_num = ? WHERE user_id = ?")
     .run(totalPlusNum, userId);
 
-  interaction.reply(
-    `<@${userId}> stracił ${plusNumToRemove} plusy! Razem ma ${totalPlusNum} plusy.`
-  );
+  const content = `<@${userId}> stracił ${plusNumToRemove} plusy! Razem ma ${totalPlusNum} plusy.`;
+
+  interaction.reply({
+    content: `<@${userId}>`,
+    embeds: [createSimpleEmbed(content)],
+  });
 }
 
 async function clearPlus(interaction, userId, db) {
   await db.prepare("DELETE FROM plus WHERE user_id = ?").run(userId);
 
-  interaction.reply(`Wyczyszczono wszystkie ostrzeżenia dla <@${userId}>.`);
+  const content = `Wyczyszczono wszystkie ostrzeżenia dla <@${userId}>.`;
+  interaction.reply({
+    content: `<@${userId}>`,
+    embeds: [createSimpleEmbed(content)],
+  });
 }
 
 async function getPlus(userId, db) {
