@@ -1,6 +1,6 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 const betterSqlite3 = require("better-sqlite3");
-const getNick = require("../../computings/getNick");
+const { createWarningEmbed, createEmbed } = require("../../computings/createEmbed");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,10 +17,12 @@ module.exports = {
 
 async function showAllWarns(interaction, db) {
   const allWarns = await getAllWarns(db);
-  let text = `## Wszystkie ostrzeżenia:`;
+  let text = ``;
   let id = 1;
   if (allWarns.length === 0)
-    return interaction.reply("Brak danych o ostrzeżeniach w bazie.");
+    return interaction.reply({
+      embeds: [createWarningEmbed("Brak danych o ostrzeżeniach w bazie.")],
+    });
 
   for (const { user_id: userId, warn_num: warnNum, reason } of allWarns) {
     // const clientMember = await interaction.client.users.fetch(userId);
@@ -30,7 +32,9 @@ async function showAllWarns(interaction, db) {
     // const interactionMember = interaction.member?.nickname || interaction.user.globalName;
 
     // const nick = guildMember?.displayName;
-    const nick = await getNick(interaction, userId);
+
+    // // // // const nick = await getNick(interaction, userId);
+    
     // console.log(nick);
     // console.log(interactionMember);
     // nick == "babtosz" &&
@@ -47,11 +51,11 @@ async function showAllWarns(interaction, db) {
     //     clientMember?.tag, //tak                       miszalek2 / babtosz.
     //     clientMember?.displayName //tak                Miszalek2 / babtosz
     //   );
-    text += `\n**${id++}**. ${nick} - \`${warnNum}\` za: *${reason}* ${
+    text += `\n**${id++}**. <@${userId}> - \`${warnNum}\` za: **${reason}** ${
       warnNum === 3 ? "**Potem ban**" : ""
     }`;
   }
-  interaction.reply(text);
+  interaction.reply({ embeds: [createEmbed("Wszystkie ostrzeżenia:",text)] });
 }
 
 async function getAllWarns(db) {

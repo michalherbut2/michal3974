@@ -1,3 +1,5 @@
+const { createSimpleEmbed } = require("../../computings/createEmbed");
+
 module.exports = {
   config: {
     name: "unpause",
@@ -13,6 +15,6 @@ module.exports = {
 
   run: async (client, message, args) => {
     client.queue.get(message.guild.id).player.unpause();
-    message.channel.send(`jazda 🎵`);
+    message.channel.send({ embeds: [createSimpleEmbed(`jazda 🎵`)] });
   },
 };

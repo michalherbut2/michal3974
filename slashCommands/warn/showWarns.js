@@ -1,6 +1,6 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 const betterSqlite3 = require("better-sqlite3");
-const getNick = require("../../computings/getNick");
+const { createSimpleEmbed } = require("../../computings/createEmbed");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,13 +24,11 @@ module.exports = {
 
 async function printWarns(interaction, userId, db) {
   const [warnNum, reason] = await getWarn(userId, db);
-  const nick = await getNick(interaction, userId);
-
-  interaction.reply(
-    `Ostrzeżenia dla ${nick}: ${warnNum} za: *${reason}*${
-      warnNum === 3 ? "\n# Potem ban" : ""
-    }`
-  );
+  // const nick = await getNick(interaction, userId);
+  const content = `Ostrzeżenia dla <@${userId}>: ${warnNum} za: **${reason}**${
+    warnNum === 3 ? "\n# Potem ban" : ""
+  }`;
+  interaction.reply({ embeds: [createSimpleEmbed(content)] });
 }
 
 async function getWarn(userId, db) {

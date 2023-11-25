@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const addRole = require("../../computings/addRole");
 const removeRole = require("../../computings/removeRole");
 const betterSqlite3 = require("better-sqlite3");
+const { createEmbed } = require("../../computings/createEmbed");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -86,55 +87,40 @@ async function addWarn(interaction, userId, db) {
         `UPDATE warn SET warn_num = warn_num + 1, reason = reason || ', ${reason}' WHERE user_id = ?`
       )
       .run(userId);
-  else 
+  else
     await db
       .prepare("INSERT OR IGNORE INTO warn (user_id, reason) VALUES (?,?)")
       .run(userId, reason);
 
-  const text = `<@${userId}> dostał ostrzerzenie za **${reason}**. Razem ma teraz ${warnNum} ostrzeżeń.${
+  const text = `<@${userId}> nareszcie dostał 2. ostrzerzenie za **${reason}**!${
     warnNum === 3 ? "\n# Potem ban" : ""
-  }`;
-
+    }`;
+  
+  let content = text + '\n';
+  
   if (warnNum == 1 && config?.rola_za_1_ostrzerzenie) {
-    await addRole(
-      interaction,
-      userId,
-      config.rola_za_1_ostrzerzenie
-    );
-    interaction.reply(
-      `${text}\nW nagrodę <@${userId}> przez dzień nie możesz pisać`
-    );
+    await addRole(interaction, userId, config.rola_za_1_ostrzerzenie);
+    content += `W nagrodę <@${userId}> przez dzień nie możesz pisać!`;
     setTimeout(() => {
       removeRole(interaction, userId, config?.rola_za_1_ostrzerzenie);
     }, 1000 * 60 * 60 * 24); // dzień
   } else if (warnNum == 2 && config?.rola_za_2_ostrzerzenie) {
-    await addRole(
-      interaction,
-      userId,
-      config.rola_za_2_ostrzerzenie
-    );
-    interaction.reply(
-      `${text}\nW nagrodę <@${userId}> przez 3 dni nie możesz pisać i gadać`
-    );
+    await addRole(interaction, userId, config.rola_za_2_ostrzerzenie);
+    content += `W nagrodę <@${userId}> przez 3 dni nie możesz pisać i gadać!`
     setTimeout(() => {
       removeRole(interaction, userId, config?.rola_za_2_ostrzerzenie);
     }, 1000 * 60 * 60 * 24 * 3);
   } else if (warnNum == 3 && config?.rola_za_3_ostrzerzenie) {
-    await addRole(
-      interaction,
-      userId,
-      config.rola_za_3_ostrzerzenie
-    );
-    interaction.reply(
-      `${text}\nW nagrodę <@${userId}> przez tydzień nie możesz pisać i gadać`
-    );
+    await addRole(interaction, userId, config.rola_za_3_ostrzerzenie);
+    content += `W nagrodę <@${userId}> przez tydzień nie możesz pisać i gadać!`
     setTimeout(() => {
       removeRole(interaction, userId, config?.rola_za_3_ostrzerzenie);
     }, 1000 * 60 * 60 * 24 * 7);
   } else
-    interaction.reply(
-      `${text}\nW nagrodę za Twoje zasługi <@${userId}> otrzymujesz banicję`
-    );
+    content += `W nagrodę za Twoje zasługi <@${userId}> otrzymujesz banicję`
+  
+  interaction.reply({embeds: [createEmbed("Ostrzeżenie! <a:kaczka:1172071696379940894>",content, 0xff2200)]}
+  );
 }
 
 async function removeWarn(interaction, userId, db) {
@@ -164,5 +150,9 @@ async function getWarns(userId, db) {
   return result?.warn_num || 0;
 }
 
-const getServerConfig = async db => await db.prepare("SELECT * FROM config").all();
-const getConfig = async db => Object.fromEntries((await getServerConfig(db)).map(item => [item.key, item.value]));
+const getServerConfig = async db =>
+  await db.prepare("SELECT * FROM config").all();
+const getConfig = async db =>
+  Object.fromEntries(
+    (await getServerConfig(db)).map(item => [item.key, item.value])
+  );

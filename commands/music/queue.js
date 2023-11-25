@@ -1,3 +1,5 @@
+const { createSimpleEmbed } = require("../../computings/createEmbed");
+
 module.exports = {
   config: {
     name: "queue",
@@ -16,10 +18,15 @@ module.exports = {
     if (!queue.length) {
       message.channel.send("Ludzie, tu niczego nie ma!");
     } else {
-      message.channel.send(
-        `Kolejka:\n${queue.map((song, id) => `**${id ? id : "Gram"}**: ${song.metadata.title} - \`${song.metadata.duration}\``)
-          .join("\n")}`
-      );
+      const content = `## Kolejka:\n${queue
+        .map(
+          (song, id) =>
+            `**${id ? id : "Gram"}**: ${song.metadata.title} - \`${
+              song.metadata.duration
+            }\``
+        )
+        .join("\n")}`;
+      message.channel.send({ embeds: [createSimpleEmbed(content)] });
     }
   },
 };

@@ -77,20 +77,13 @@ async function playRadio(interaction) {
   });
   
   // const audioResource = createAudioResource(station);
-  connection.subscribe(radioQueue.player);
 
   if (!radioQueue.isPlaying) {
-    // radioQueue.player.on(AudioPlayerStatus.Idle, () => {
-    //   radioQueue.queue.shift();
-    //   radioQueue.queue.length
-    //     ? radioQueue.player.play(radioQueue.queue[0])
-    //     : (radioQueue.isPlaying = false);
-    //   interaction.followUp(`🎵 piosenki w kolejce: ${radioQueue.queue.length}`);
-    // });
     radioQueue.isPlaying = true;
     radioQueue.player.play(radioQueue.queue[0]);
   }
   radioQueue.player.unpause();
+  connection.subscribe(radioQueue.player);
 
   // console.log(+station);
   // radioQueue.queue.push(audioResource);
@@ -99,7 +92,7 @@ async function playRadio(interaction) {
 }
  
 async function stopRadio(interaction)  {
-  const radioQueue = interaction.client.radio.get(interaction.guild.id);
+  const radioQueue = await interaction.client.radio.get(interaction.guild.id);
   if (radioQueue.isPlaying)
     radioQueue.player.pause()
     // radioQueue.player.stop()

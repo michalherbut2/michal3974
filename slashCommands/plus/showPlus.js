@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const betterSqlite3 = require("better-sqlite3");
-const getNick = require("../../computings/getNick");
+const { createSimpleEmbed } = require("../../computings/createEmbed");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,7 +14,6 @@ module.exports = {
         )
     ),
   async execute(interaction) {
-    // const db = betterSqlite3("plusy.db");
     const db = new betterSqlite3(`db/db_${interaction.guild.id}.db`);
 
 
@@ -31,6 +30,7 @@ module.exports = {
     
     const userPluses = row ? row.plus_num : 0;
     const reason = row ? row.reason : '';
-    interaction.reply(`${await getNick(interaction, userId)} ma ${userPluses} plusów za: **${reason}**!`);
+    const content = `<@${userId}> ma ${userPluses} plusów za: **${reason}**!`;
+    interaction.reply({embeds:[createSimpleEmbed(content)]});
   },
 };

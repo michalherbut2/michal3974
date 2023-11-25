@@ -5,6 +5,11 @@ const {
   AudioPlayerStatus,
 } = require("@discordjs/voice");
 const play = require("play-dl");
+const {
+  createEmbed,
+  createSimpleEmbed,
+  createWarningEmbed,
+} = require("../../computings/createEmbed");
 
 module.exports = {
   config: {
@@ -23,7 +28,7 @@ module.exports = {
     try {
       const voiceChannel = message.member.voice.channel;
       const serverId = message.guild.id;
-      if (!voiceChannel) return message.reply("dołącz do kanału głosowego!");
+      if (!voiceChannel) return message.reply("dołącz do kanału głosowego! :uwaga:");
 
       const yt_info = await play.search(args.join(" "), {
         limit: 1,
@@ -47,30 +52,29 @@ module.exports = {
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
       // client.test.voiceConnection.push(voiceConnection).
-      const serverQueue = client.queue.get(serverId)
+      const serverQueue = client.queue.get(serverId);
+      serverQueue.channel = message.channel;
       // console.log(client.queue);
       serverQueue.queue.push(resource);
- 
-      
-      serverQueue.player.on("error", error => {
-        console.error(`Error: ${error.message} with resource ${error}`);
 
-        serverQueue.queue.shift();
-      });
+      // serverQueue.player.on("error", error => {
+      //   console.error(`Error: ${error.message} with resource ${error}`);
+
+      //   serverQueue.queue.shift();
+      // });
 
       if (!serverQueue.isPlaying) {
-
         // serverQueue.player=createAudioPlayer()
-       
-        serverQueue.player.on(AudioPlayerStatus.Idle, () => {
-          serverQueue.queue.shift();
-          serverQueue.queue.length
-            ? serverQueue.player.play(serverQueue.queue[0])
-            : (serverQueue.isPlaying = false); 
-          message.channel.send(
-            `🎵 piosenki w kolejce: ${serverQueue.queue.length}`
-          );
-        });
+
+        // serverQueue.player.on(AudioPlayerStatus.Idle, () => {
+        //   serverQueue.queue.shift();
+        //   serverQueue.queue.length
+        //     ? serverQueue.player.play(serverQueue.queue[0])
+        //     : (serverQueue.isPlaying = false);
+        //   message.channel.send(
+        //     `🎵 piosenki w kolejce: ${serverQueue.queue.length}`
+        //   );
+        // });
 
         serverQueue.player.play(serverQueue.queue[0]);
 
@@ -78,13 +82,17 @@ module.exports = {
       }
 
       voiceConnection.subscribe(serverQueue.player);
-
-      message.channel.send(
-        `gra gitara **${title}** - \`${durationRaw}\` 🎵 piosenki w kolejce: ${serverQueue.queue.length}`
-      );
+      const content = `gra gitara **${title}** - \`${durationRaw}\`\n🎵 piosenki w kolejce: ${serverQueue.queue.length}`;
+      message.channel.send({
+        embeds: [createSimpleEmbed(content)],
+      });
     } catch (error) {
       console.error("Problem:", error);
-      message.channel.send(`Wystąpił błąd podczas odtwarzania muzyki.`, error);
+      message.channel.send({
+        embeds: [
+          createWarningEmbed(`Wystąpił błąd podczas odtwarzania muzyki.`),
+        ],
+      });
     }
   },
 };
