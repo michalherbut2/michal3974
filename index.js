@@ -10,7 +10,7 @@ const client = new Client({
     // IntentsBitField.Flags.Guilds, // -special structure in discord.js that allows you to modify a bitfield, using functions like add() and remove()
     GatewayIntentBits.Guilds, // .GUILDS,//
     GatewayIntentBits.GuildMessages, // .GUILD_MESSAGES,
-    GatewayIntentBits.GuildMembers, // .GUILD_MEMBERS,
+    GatewayIntentBits.GuildMembers, // .GUILD_MEMBERS, // privileged intent
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates, // .GUILD_VOICE_STATES,
   ],

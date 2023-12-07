@@ -5,29 +5,31 @@ const {
   createWarningEmbed,
 } = require("../../computings/createEmbed");
 
-module.exports = {
-  config: {
-    name: "play",
-    description: "play yt",
-    usage: `play`,
-  },
 
-  /**
-   * @param {Client} client
-   * @param {Message} message
-   * @param {String[]} args
-   */
-  //seohost
-  run: async (client, message, args) => {
+const { SlashCommandBuilder } = require("discord.js");
+
+module.exports = { 
+  data: new SlashCommandBuilder()
+    .setName("play")
+    .setDescription("Odpowiada Pong!")
+    .addStringOption(option =>
+      option
+        .setName("muzyka")
+        .setDescription("nazwa piosenki lub link yt 1100 11 00")
+        .setRequired(true)
+    ),
+  async execute(interaction) {
     try {
-      const voiceChannel = message.member.voice.channel;
-      const serverId = message.guild.id;
+      const voiceChannel = interaction.member.voice.channel;
+      const song = interaction.options.getString("muzyka")
+      const serverId = interaction.guild.id;
       if (!voiceChannel)
-        return message.reply({
+        return interaction.reply({
           embeds: [createWarningEmbed("dołącz do kanału głosowego!")],
+          ephemeral: true
         });
 
-      const yt_info = await play.search(args.join(" "), {
+      const yt_info = await play.search(song, {
         limit: 1,
       });
 
@@ -49,8 +51,8 @@ module.exports = {
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
 
-      const serverQueue = client.queue.get(serverId);
-      serverQueue.channel = message.channel;
+      const serverQueue = interaction.client.queue.get(serverId);
+      serverQueue.channel = interaction.channel;
       serverQueue.queue.push(resource);
 
       if (!serverQueue.isPlaying) {
@@ -61,12 +63,12 @@ module.exports = {
       voiceConnection.subscribe(serverQueue.player);
 
       const content = `gra gitara **${title}** - \`${durationRaw}\`\n🎵 piosenki w kolejce: ${serverQueue.queue.length}`;
-      message.channel.send({
+      interaction.reply({
         embeds: [createSimpleEmbed(content)],
       });
     } catch (error) {
       console.error("Problem:", error);
-      message.channel.send({
+      interaction.reply({
         embeds: [
           createWarningEmbed(`Wystąpił błąd podczas odtwarzania muzyki.`),
         ],

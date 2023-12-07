@@ -20,7 +20,6 @@
 .env.production.local
 config.json
 *.db
-music
 computings_old
 commands_old
 .vscode
