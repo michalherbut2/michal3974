@@ -1,6 +1,7 @@
 const { AudioPlayerStatus, createAudioResource } = require("@discordjs/voice");
 const { createAudioPlayer } = require("@discordjs/voice");
 const { createSimpleEmbed } = require("./createEmbed");
+const getResource = require("./getResource");
 
 module.exports = async client => {
   class ServerQueue {
@@ -9,6 +10,7 @@ module.exports = async client => {
       this.channel;
       this.queue = [];
       this.isPlaying = false;
+      this.isLooping = false
       this.player = createAudioPlayer();
       this.player.on(AudioPlayerStatus.Playing, () => {
         console.log("The music player has started playing!");
@@ -19,12 +21,15 @@ module.exports = async client => {
       this.player.on(AudioPlayerStatus.Buffering, () => {
         console.log("bufersuje muzyke!");
       });
-      this.player.on(AudioPlayerStatus.Idle, () => {
-        this.queue.shift();
+      this.player.on(AudioPlayerStatus.Idle, async () => {
+        const title = this.queue.shift()?.metadata?.title;
+        this.isLooping && title ?
+          this.queue.unshift(await getResource(title))
+          :null
         this.queue.length
           ? this.player.play(this.queue[0])
           : (this.isPlaying = false);
-        this.channel.send({
+        this.channel.send({ 
           embeds: [
             createSimpleEmbed(`🎵 piosenki w kolejce: ${this.queue.length}`),
           ],

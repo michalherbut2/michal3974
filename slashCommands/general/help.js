@@ -36,14 +36,16 @@ module.exports = {
   },
 };
 const content = `### muzyczne:
-**play** - podaj nazwę z yt lub link
-**skip** - skipuje aktualną pisoenkę lub o danym numerze
+**/play** - podaj nazwę z yt lub link
+**/skip** - skipuje aktualną pisoenkę lub o danym numerze
 **pause** - pauzuje muzykę
 **unpause** - wznawia muzykę
 **queue** - wyświetla kolejkę piosenek
 **stop** - kończy zabawę
 **/panel** - daje panel
 **/radio** - odpala radio
+**/pętla** - gra ciągle tą samą piosenkę
+****
 
 ### ogólne:
 **/nb** - pokazuje nieobecnośći adminów

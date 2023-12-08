@@ -6,18 +6,19 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("pogoda")
     .setDescription("Sprawdź aktualną pogodę")
-    .addStringOption(option =>
-      option
-        .setName("miejsce")
-        .setDescription("Podaj miejsce (miasto, wieś lub kod pocztowy)")
-        .setRequired(true)
-    ),
+  //   .addStringOption(option =>
+  //     option
+  //       .setName("miejsce")
+  //       .setDescription("Podaj miejsce (miasto, wieś lub kod pocztowy)")
+  //       .setRequired(true)
+  // )
+  ,
   async execute(interaction) {
     const { options } = interaction;
-    const location = options.getString('miejsce');
+    // const location = options.getString('miejsce');
 
     try {
-      const weatherInfo = await getWeatherInfo(location);
+      const weatherInfo = await getWeatherInfo();
 
       console.log(weatherInfo);
       const embed = new EmbedBuilder()
@@ -116,7 +117,7 @@ function getWeatherIconURL(weatherCode) {
   return `https://www.weatherbit.io/static/img/icons/${weatherCode}.png`;
 }
 
-async function getWeatherInfo(location) {
+async function getWeatherInfo() {
   // const response = await axios.get(`https://api.open-meteo.com/weather?location=${encodeURIComponent(location)}`);
   const response = await axios.get(
     `https://api.open-meteo.com/v1/forecast?latitude=51.1&longitude=17.0333&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=auto&forecast_days=1`

@@ -38,7 +38,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node .",
-    "dev": "nodemon --delay 5 ."
+    "dev": "nodemon --delay 3 ."
   },
   "repository": {
     "type": "git",

@@ -5,9 +5,9 @@ module.exports = {
     .setName("stop")
     .setDescription("Kończy granie muzyki!"),
   async execute(interaction) {
-    interaction.client.queue.get(interaction.guild.id).queue = [];
-    interaction.client.queue.get(interaction.guild.id).player.stop();
+    const serverQueue = interaction.client.queue.get(interaction.guild.id)
+    serverQueue.queue = [];
+    serverQueue.player.stop();
     await interaction.reply("Skończył się dzień dziecka!");
   },
 };
-// syf
