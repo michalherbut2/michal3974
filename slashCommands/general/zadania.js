@@ -1,14 +1,89 @@
-const Discord = require('discord.js');
-const sqlite3 = require('sqlite3').verbose();
+const { Client, Intents } = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const Database = require('better-sqlite3');
 const { setTimeout, setInterval } = require('timers/promises');
 const { v4: uuidv4 } = require('uuid');
 
-const client = new Discord.Client();
-const prefix = '!';
+const clientId = 'TUTAJ_TWÓJE_CLIENT_ID';
+const guildId = 'TUTAJ_TWÓJE_GUILD_ID';
 
-const db = new sqlite3.Database('tasks.db');
 
-db.run(`
+const commands = [
+  {
+    name: 'addtask',
+    description: 'Dodaj nowe zadanie',
+    options: [
+      {
+        name: 'date',
+        type: 'INTEGER',
+        description: 'Data wykonania zadania (np. 1, 2, 3)',
+        required: true,
+      },
+      {
+        name: 'content',
+        type: 'STRING',
+        description: 'Treść zadania',
+        required: true,
+      },
+      {
+        name: 'additionalinfo',
+        type: 'STRING',
+        description: 'Dodatkowe informacje dotyczące zadania',
+        required: true,
+      },
+    ],
+  },
+  {
+    name: 'listtasks',
+    description: 'Wyświetl listę zadań',
+  },
+  {
+    name: 'listalltasks',
+    description: 'Wyświetl listę wszystkich zadań na serwerze',
+  },
+  {
+    name: 'removetask',
+    description: 'Usuń zadanie',
+    options: [
+      {
+        name: 'taskid',
+        type: 'STRING',
+        description: 'ID zadania do usunięcia',
+        required: true,
+      },
+    ],
+  },
+  {
+    name: 'updatetasks',
+    description: 'Aktualizuj zadania',
+  },
+  {
+    name: 'cleartasks',
+    description: 'Wyczyść wszystkie zadania na serwerze',
+  },
+];
+
+const rest = new REST({ version: '9' }).setToken(token);
+
+(async () => {
+  try {
+    console.log('Started refreshing application (/) commands.');
+
+    await rest.put(
+      Routes.applicationGuildCommands(clientId, guildId),
+      { body: commands },
+    );
+
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
+const db = new Database('tasks.db');
+
+db.prepare(`
   CREATE TABLE IF NOT EXISTS tasks (
     id TEXT PRIMARY KEY,
     serverId TEXT,
@@ -17,164 +92,172 @@ db.run(`
     content TEXT,
     additionalInfo TEXT
   )
-`);
+`).run();
 
-client.on('message', async (message) => {
-  if (message.author.bot || !message.content.startsWith(prefix)) return;
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-  const args = message.content.slice(prefix.length).trim().split(/ +/);
-  const command = args.shift().toLowerCase();
+bot.on('interactionCreate', async (interaction) => {
+  if (!interaction.isCommand()) return;
+
+  const { commandName, options } = interaction;
 
   try {
-    switch (command) {
+    switch (commandName) {
       case 'addtask':
-        await addTask(message, args);
+        await addTask(interaction, options);
         break;
       case 'listtasks':
-        await listTasks(message);
+        await listTasks(interaction);
         break;
       case 'listalltasks':
-        await listAllTasks(message);
-        break;
-      case 'showtask':
-        await showTask(message, args);
+        await listAllTasks(interaction);
         break;
       case 'removetask':
-        await removeTask(message, args);
+        await removeTask(interaction, options);
         break;
       case 'updatetasks':
         await updateTasks();
-        message.reply('Zadania zostały zaktualizowane.');
+        await interaction.reply('Zadania zostały zaktualizowane.');
         break;
       case 'cleartasks':
-        await clearTasks(message);
-        message.reply('Wszystkie zadania na serwerze zostały usunięte.');
+        await clearTasks(interaction);
+        await interaction.reply('Wszystkie zadania na serwerze zostały usunięte.');
+        break;
+
+      default:
         break;
     }
   } catch (error) {
     console.error(error.message);
-    message.reply('Wystąpił błąd podczas wykonania komendy.');
+    await interaction.reply('Wystąpił błąd podczas wykonania komendy.');
   }
 });
 
-setInterval(updateTasks, 15 * 60 * 1000);
 
-async function addTask(message, args) {
-  const date = args[0];
-  const content = args.slice(1, -1).join(' ');
-  const additionalInfo = args[args.length - 1];
 
-  if (!date || !content || !additionalInfo) {
-    throw new Error('Użycie: !addtask <data wykonania> <treść zadania> <dodatkowe informacje>');
+async function addTask(interaction, options) {
+  const date = options.getInteger('date');
+  const content = options.getString('content');
+  const additionalInfo = options.getString('additionalinfo');
+
+  if (!Number.isInteger(date) || !content || !additionalInfo) {
+    throw new Error('Użycie: /addtask date content additionalinfo');
   }
 
   try {
     const taskId = uuidv4();
-    await db.run('INSERT INTO tasks (id, serverId, userId, date, content, additionalInfo) VALUES (?, ?, ?, ?, ?, ?)', [
+    db.prepare('INSERT INTO tasks (id, serverId, userId, date, content, additionalInfo) VALUES (?, ?, ?, ?, ?, ?)').run(
       taskId,
-      message.guild.id,
-      message.author.id,
+      interaction.guild.id,
+      interaction.user.id,
       date,
       content,
-      additionalInfo,
-    ]);
+      additionalInfo
+    );
 
-    message.reply(`Zadanie zostało dodane pomyślnie! ID zadania: ${taskId}`);
-    await setReminders(message.guild.id, message.author.id, date, content);
+    await interaction.reply(`Zadanie dodane pomyślnie! ID zadania: ${taskId}`);
+    await setReminders(interaction.guild.id, interaction.user.id, date, content);
   } catch (dbError) {
-    console.error('Błąd bazy danych przy dodawaniu zadania:', dbError.message);
-    message.reply('Wystąpił błąd podczas dodawania zadania. Spróbuj ponownie.');
+    console.error('Błąd bazy danych podczas dodawania zadania:', dbError.message);
+    await interaction.reply('Wystąpił błąd podczas dodawania zadania. Spróbuj ponownie.');
   }
 }
 
-async function listTasks(message) {
+async function listTasks(interaction) {
   try {
-    const rows = await db.all('SELECT id, date, content FROM tasks WHERE userId = ? AND serverId = ?', [message.author.id, message.guild.id]);
+    const rows = db.prepare('SELECT id, date, content FROM tasks WHERE userId = ? AND serverId = ?').all(
+      interaction.user.id,
+      interaction.guild.id
+    );
 
     if (rows.length === 0) {
-      message.reply('Brak zaplanowanych zadań.');
+      await interaction.reply('Brak zaplanowanych zadań.');
       return;
     }
 
     const taskList = rows.map((row) => `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`);
-    message.reply(`Lista zadań:\n${taskList.join('\n')}`);
+    await interaction.reply(`Lista zadań:\n${taskList.join('\n')}`);
   } catch (dbError) {
     console.error('Błąd bazy danych przy listowaniu zadań:', dbError.message);
-    message.reply('Wystąpił błąd podczas pobierania listy zadań. Spróbuj ponownie.');
+    await interaction.reply('Wystąpił błąd podczas pobierania listy zadań. Spróbuj ponownie.');
   }
 }
 
-async function listAllTasks(message) {
+async function listAllTasks(interaction) {
   try {
-    const rows = await db.all('SELECT id, date, content FROM tasks WHERE serverId = ?', [message.guild.id]);
+    const rows = db.prepare('SELECT id, date, content FROM tasks WHERE serverId = ?').all(
+      interaction.guild.id
+    );
 
     if (rows.length === 0) {
-      message.reply('Brak zaplanowanych zadań na serwerze.');
+      await interaction.reply('Brak zaplanowanych zadań na serwerze.');
       return;
     }
 
     const taskList = rows.map((row) => `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`);
-    message.reply(`Lista wszystkich zadań na serwerze:\n${taskList.join('\n')}`);
+    await interaction.reply(`Lista wszystkich zadań na serwerze:\n${taskList.join('\n')}`);
   } catch (dbError) {
     console.error('Błąd bazy danych przy listowaniu wszystkich zadań:', dbError.message);
-    message.reply('Wystąpił błąd podczas pobierania listy zadań. Spróbuj ponownie.');
+    await interaction.reply('Wystąpił błąd podczas pobierania listy zadań. Spróbuj ponownie.');
   }
 }
 
-async function showTask(message, args) {
-  const taskId = args[0];
+async function removeTask(interaction, options) {
+  const taskId = options.getString('taskid');
 
   if (!taskId) {
-    throw new Error('Użycie: !showtask <ID zadania>');
+    throw new Error('Użycie: /removetask taskid');
   }
 
   try {
-    const row = await db.get('SELECT * FROM tasks WHERE id = ? AND serverId = ?', [taskId, message.guild.id]);
-
-    if (!row) {
-      throw new Error('Nie znaleziono zadania o podanym ID na serwerze.');
-    }
-
-    message.reply(
-      `Szczegóły zadania (ID: ${row.id}):\nData: ${formatDate(row.date)}\nTreść: ${row.content}\nDodatkowe informacje: ${row.additionalInfo}`
-    );
-  } catch (dbError) {
-    console.error('Błąd bazy danych przy pokazywaniu szczegółów zadania:', dbError.message);
-    message.reply('Wystąpił błąd podczas pobierania informacji o zadaniu. Spróbuj ponownie.');
-  }
-}
-
-async function removeTask(message, args) {
-  const taskId = args[0];
-
-  if (!taskId) {
-    throw new Error('Użycie: !removetask <ID zadania>');
-  }
-
-  try {
-    const result = await db.run('DELETE FROM tasks WHERE id = ? AND serverId = ?', [taskId, message.guild.id]);
+    const result = db.prepare('DELETE FROM tasks WHERE id = ? AND serverId = ?').run(taskId, interaction.guild.id);
 
     if (result.changes === 0) {
       throw new Error('Nie znaleziono zadania o podanym ID na serwerze.');
     }
 
-    message.reply('Zadanie zostało usunięte pomyślnie.');
+    await interaction.reply('Zadanie zostało usunięte pomyślnie.');
   } catch (dbError) {
     console.error('Błąd bazy danych przy usuwaniu zadania:', dbError.message);
-    message.reply('Wystąpił błąd podczas usuwania zadania. Spróbuj ponownie.');
+    await interaction.reply('Wystąpił błąd podczas usuwania zadania. Spróbuj ponownie.');
+  }
+}
+
+
+
+async function showTask(interaction, options) {
+  const taskId = options.getString('taskid');
+
+  if (!taskId) {
+    throw new Error('Użycie: /showtask taskid');
+  }
+
+  try {
+    const row = db.prepare('SELECT * FROM tasks WHERE id = ? AND serverId = ?').get(taskId, interaction.guild.id);
+
+    if (!row) {
+      throw new Error('Nie znaleziono zadania o podanym ID na serwerze.');
+    }
+
+    await interaction.reply(
+      `Szczegóły zadania (ID: ${row.id}):\nData: ${formatDate(row.date)}\nTreść: ${row.content}\nDodatkowe informacje: ${row.additionalInfo}`
+    );
+  } catch (dbError) {
+    console.error('Błąd bazy danych przy pokazywaniu szczegółów zadania:', dbError.message);
+    await interaction.reply('Wystąpił błąd podczas pobierania informacji o zadaniu. Spróbuj ponownie.');
   }
 }
 
 async function updateTasks() {
   try {
-    const rows = await db.all('SELECT * FROM tasks');
+    const rows = db.prepare('SELECT * FROM tasks').all();
 
     for (const row of rows) {
       const taskDate = new Date(row.date);
       const currentTime = new Date();
 
       if (taskDate.getTime() <= currentTime.getTime() + 15 * 60 * 1000) {
-        const user = await client.users.fetch(row.userId);
+        const user = await bot.users.fetch(row.userId);
         user.send(
           `Przypomnienie: Masz zadanie "${row.content}" do wykonania w ciągu 15 minut! Dodatkowe informacje: ${row.additionalInfo}`
         );
@@ -192,7 +275,7 @@ async function setReminders(serverId, userId, date, content) {
     const oneHourBefore = new Date(taskDate.getTime() - 60 * 60 * 1000);
 
     await setTimeout(() => {
-      client.guilds.fetch(serverId).then((guild) => {
+      bot.guilds.fetch(serverId).then((guild) => {
         guild.members.fetch(userId).then((user) => {
           user.send(`Przypomnienie: Masz zadanie "${content}" do wykonania za 24 godziny!`);
         });
@@ -200,7 +283,7 @@ async function setReminders(serverId, userId, date, content) {
     }, oneDayBefore.getTime() - Date.now());
 
     await setTimeout(() => {
-      client.guilds.fetch(serverId).then((guild) => {
+      bot.guilds.fetch(serverId).then((guild) => {
         guild.members.fetch(userId).then((user) => {
           user.send(`Przypomnienie: Masz zadanie "${content}" do wykonania za 1 godzinę!`);
         });
@@ -211,19 +294,16 @@ async function setReminders(serverId, userId, date, content) {
   }
 }
 
-async function clearTasks(message) {
+async function clearTasks(interaction) {
   try {
-    await db.run('DELETE FROM tasks WHERE serverId = ?', [message.guild.id]);
+    db.prepare('DELETE FROM tasks WHERE serverId = ?').run(interaction.guild.id);
+    await interaction.reply('Wszystkie zadania na serwerze zostały usunięte.');
   } catch (dbError) {
     console.error('Błąd bazy danych przy usuwaniu zadań:', dbError.message);
-    message.reply('Wystąpił błąd podczas usuwania zadań. Spróbuj ponownie.');
+    await interaction.reply('Wystąpił błąd podczas usuwania zadań. Spróbuj ponownie.');
   }
 }
 
-function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
-  const formattedDate = new Date(dateString).toLocaleDateString('pl-PL', options);
-  return formattedDate;
-}
+
 
 
