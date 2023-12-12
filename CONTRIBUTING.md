@@ -1,4 +1,4 @@
-# Contributing to [Nazwa Twojego Projektu]
+
 
 Dziękujemy za zainteresowanie wkładem w nasz projekt! Chcemy, abyś poczuł się swobodnie i mile widziany podczas dodawania swojego wkładu. Poniżej znajdziesz informacje na temat procesu współpracy.
 
