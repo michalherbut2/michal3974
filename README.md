@@ -65,3 +65,8 @@ Stwórz plik `config.json` i wypełnij go:
 - `/ostrzezenie czysc` - usuwa wszystkie ostrzeżenia danej osoby
 - `/config` - konfiguruje działanie bota 
 - `/sprawdzaj_nieobecnosci` - sprawdza nieobecnośći
+
+🌐 Dodaj bota na swój serwer Discord!
+Dodaj bota na swój serwer, klikając w **[link](https://discord.com/api/oauth2/authorize?client_id=1005161253129433158&permissions=4331669504&scope=bot)**.
+
+Dziękuję za zainteresowanie michal3974! Jeśli masz pytania lub potrzebujesz pomocy, śmiało pytaj! 🤖🚀
