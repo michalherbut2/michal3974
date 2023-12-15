@@ -35,9 +35,9 @@ module.exports = {
     await interaction.reply({ embeds: [createEmbed("Komendy", content)] });
   },
 };
-const content = `### muzyczne:
+const content = `### Komendy Muzyczne:
 **/play** - podaj nazwę z yt lub link
-**/skip** - skipuje aktualną pisoenkę lub o danym numerze
+**/skip** - skipuje aktualną piosenkę lub o danym numerze
 **pause** - pauzuje muzykę
 **unpause** - wznawia muzykę
 **queue** - wyświetla kolejkę piosenek
@@ -45,23 +45,36 @@ const content = `### muzyczne:
 **/panel** - daje panel
 **/radio** - odpala radio
 **/pętla** - gra ciągle tą samą piosenkę
-****
 
-### ogólne:
-**/nb** - pokazuje nieobecnośći adminów
+### Komendy Ogólne:
+**/nb** - pokazuje nieobecności adminów
 
-### ostrzeżenia:
+### Komendy Ostrzeżeń:
 **/poka_wszystkie_ostrzezenia** - pokazuje wszystkie ostrzeżenia
 **/poka_ostrzezenia** - pokazuje ostrzeżenia danej osoby
 
-### plusy:
+### Komendy Plusów:
 **/poka_wszystkie_plusy** - pokazuje wszystkie plusy
 **/poka_plusy** - pokazuje plusy danej osoby
 
-### dla adminów:
+### Komendy Dla Adminów:
 **/ostrzezenie dodaj** - dodaje ostrzeżenie danej osoby
 **/ostrzezenie usun** - usuwa ostrzeżenie danej osoby
 **/ostrzezenie czysc** - usuwa wszystkie ostrzeżenia danej osoby
 **/config** - konfiguruje działanie bota 
-**/sprawdzaj_nieobecnosci** - sprawdza nieobecnośći
+**/sprawdzaj_nieobecnosci** - sprawdza nieobecności
+
+### Komendy Moderacyjne:
+**/ban** - banuje użytkownika z serwera
+**/kick** - wyrzuca użytkownika z serwera
+**/mute** - wycisza użytkownika na serwerze
+**/unmute** - odblokowuje użytkownika z wyciszenia na serwerze
+**/set_role** - nadaje użytkownikowi rolę na serwerze
+**/remove_role** - usuwa użytkownikowi rolę na serwerze
+**/change_nick** - zmienia nick użytkownika na serwerze
+
+### Komendy Rozrywkowe:
+**/roll** - losuje liczbę z zakresu od 1 do 100
+**/dice** - losuje liczbę z zakresu od 1 do 6
+**/time** - wyświetla aktualną godzinę i datę
 `;
