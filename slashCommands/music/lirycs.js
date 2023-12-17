@@ -4,21 +4,77 @@ const cheerio = require('cheerio');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const player = createAudioPlayer();
 
 const commands = [
   {
-    name: 'lyrics',
-    description: 'Pokaż tekst piosenki',
-    options: [
-      {
-        name: 'title',
-        type: 'STRING',
-        description: 'Tytuł piosenki',
-        required: false,
-      },
-    ],
+    data: new SlashCommandBuilder()
+      .setName('lyrics')
+      .setDescription('Pokaż tekst piosenki')
+      .addStringOption((option) =>
+        option.setName('title').setDescription('Tytuł piosenki').setRequired(false)
+      ),
+    async execute(interaction) {
+      const voiceChannel = interaction.member.voice.channel;
+
+      if (!voiceChannel) {
+        return interaction.reply({ content: 'Dołącz do kanału głosowego!', ephemeral: true });
+      }
+
+      const guildId = interaction.guild.id;
+      const channelId = voiceChannel.id;
+
+      try {
+        const voiceConnection = joinVoiceChannel({
+          channelId: channelId,
+          guildId: guildId,
+          adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        });
+
+        voiceConnection.subscribe(player);
+
+        let songTitle;
+        const titleOption = interaction.options.getString('title');
+        if (titleOption) {
+          songTitle = titleOption;
+        } else {
+          songTitle = getSongTitleFromStream(voiceConnection);
+
+          if (!songTitle) {
+            return interaction.reply({ content: 'Nie mogę uzyskać tytułu piosenki.', ephemeral: true });
+          }
+        }
+
+        const lyrics = await getLyrics(songTitle);
+
+        if (!lyrics) {
+          return interaction.reply({ content: 'Nie znaleziono tekstu dla tej piosenki.', ephemeral: true });
+        }
+
+        const embed = new MessageEmbed()
+          .setTitle(`Tekst piosenki: ${songTitle}`)
+          .setDescription(`\`\`\`${lyrics}\`\`\``)
+          .setColor('#3498db');
+
+        interaction.reply({ embeds: [embed], ephemeral: true });
+
+        // Event listener to detect when the playback ends
+        await new Promise((resolve) => {
+          player.once(AudioPlayerStatus.Idle, () => {
+            voiceConnection.destroy();
+            resolve();
+          });
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        interaction.reply({
+          content: 'Wystąpił błąd podczas uzyskiwania tekstu piosenki.',
+          ephemeral: true,
+        });
+      }
+    },
   },
 ];
 
@@ -39,94 +95,7 @@ const rest = new REST({ version: '10' }).setToken('YOUR_BOT_TOKEN');
   }
 });
 
-const interactionHandler = async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const voiceChannel = interaction.member.voice.channel;
-  if (!voiceChannel) {
-    return interaction.reply({ content: 'Dołącz do kanału głosowego!', ephemeral: true });
-  }
-
-  const guildId = interaction.guild.id;
-  const channelId = voiceChannel.id;
-
-  try {
-    const voiceConnection = joinVoiceChannel({
-      channelId: channelId,
-      guildId: guildId,
-      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-    });
-
-    voiceConnection.subscribe(player);
-
-    let songTitle;
-    const titleOption = interaction.options.getString('title');
-    if (titleOption) {
-      songTitle = titleOption;
-    } else {
-      songTitle = getSongTitleFromStream(voiceConnection);
-
-      if (!songTitle) {
-        return interaction.reply({ content: 'Nie mogę uzyskać tytułu piosenki.', ephemeral: true });
-      }
-    }
-
-    const lyrics = await getLyrics(songTitle);
-
-    if (!lyrics) {
-      return interaction.reply({ content: 'Nie znaleziono tekstu dla tej piosenki.', ephemeral: true });
-    }
-
-    const embed = new MessageEmbed()
-      .setTitle(`Tekst piosenki: ${songTitle}`)
-      .setDescription(`\`\`\`${lyrics}\`\`\``)
-      .setColor('#3498db');
-
-    interaction.reply({ embeds: [embed], ephemeral: true });
-
-    // Event listener to detect when the playback ends
-    await new Promise((resolve) => {
-      player.once(AudioPlayerStatus.Idle, () => {
-        voiceConnection.destroy();
-        resolve();
-      });
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    interaction.reply({ content: 'Wystąpił błąd podczas uzyskiwania tekstu piosenki.', ephemeral: true });
-  }
-};
-
-// Przykładowe wywołanie obsługi interakcji
-const exampleInteraction = {
-  isCommand: () => true,
-  member: {
-    voice: {
-      channel: {
-        id: 'VOICE_CHANNEL_ID',
-      },
-    },
-  },
-  guild: {
-    id: 'GUILD_ID',
-  },
-  commandName: 'lyrics',
-  options: {
-    getString: (name) => {
-      // Tutaj możesz dostarczyć opcje dla testowania
-      if (name === 'title') {
-        return 'Some Song Title';
-      }
-      return null;
-    },
-  },
-  reply: (message) => console.log(message),
-};
-
-// Event listener dla interakcji
-interactionHandler(exampleInteraction);
-
-// Funkcja pobierająca tytuł z aktualnie odtwarzanej piosenki
+// Function to get the title of the currently playing song
 const getSongTitleFromStream = (voiceConnection) => {
   const session = voiceConnection.joinConfig.sessionId;
   const audioPlayer = voiceConnection.state.audioPlayer;
@@ -155,7 +124,7 @@ const getSongTitleFromStream = (voiceConnection) => {
   return metadata.title;
 };
 
-// Funkcja pobierająca tekst piosenki
+// Function to get lyrics of a song from Genius
 const getLyrics = async (title) => {
   try {
     const searchUrl = `https://genius.com/api/search/multi?q=${encodeURIComponent(title)}`;
