@@ -42,56 +42,57 @@ function findEmojis(guildId, searchOption, searchValue, client) {
   return results;
 }
 
-const commands = [
-  {
-    data: new SlashCommandBuilder()
-      .setName('emote')
-      .setDescription('Wyświetla informacje o emotce')
-      .addStringOption(option =>
-        option
-          .setName('opcja_wyszukiwania')
-          .setDescription('Opcja wyszukiwania (ID, Nazwa, CzęśćNazwy, Wszystko)')
-          .setRequired(true)
-          .addChoice('ID', 'id')
-          .addChoice('Nazwa', 'nazwa')
-          .addChoice('CzęśćNazwy', 'czescNazwy')
-          .addChoice('Wszystko', 'wszystko')
-      )
-      .addStringOption(option =>
-        option
-          .setName('wartosc_wyszukiwania')
-          .setDescription('Wartość do wyszukania')
-          .setRequired(true)
-      ),
-    async execute(interaction) {
-      const { options, guildId } = interaction;
-      const searchOption = options.getString('opcja_wyszukiwania');
-      const searchValue = options.getString('wartosc_wyszukiwania');
-      const emojis = findEmojis(guildId, searchOption, searchValue, interaction.client);
+// Command object for 'emote'
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('emote')
+    .setDescription('Wyświetla informacje o emotce')
+    .addStringOption(option =>
+      option
+        .setName('opcja_wyszukiwania')
+        .setDescription('Opcja wyszukiwania (ID, Nazwa, CzęśćNazwy, Wszystko)')
+        .setRequired(true)
+        .addChoice('ID', 'id')
+        .addChoice('Nazwa', 'nazwa')
+        .addChoice('CzęśćNazwy', 'czescNazwy')
+        .addChoice('Wszystko', 'wszystko')
+    )
+    .addStringOption(option =>
+      option
+        .setName('wartosc_wyszukiwania')
+        .setDescription('Wartość do wyszukania')
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const { options, guildId } = interaction;
+    const searchOption = options.getString('opcja_wyszukiwania');
+    const searchValue = options.getString('wartosc_wyszukiwania');
+    const emojis = findEmojis(guildId, searchOption, searchValue, interaction.client);
 
-      if (emojis.length > 0) {
-        emojis.sort((a, b) => b.matchScore - a.matchScore);
+    if (emojis.length > 0) {
+      emojis.sort((a, b) => b.matchScore - a.matchScore);
 
-        const embed = {
-          title: 'Wyniki wyszukiwania',
-          fields: emojis.map((emoji) => ({
-            name: `${emoji.type === 'emoji' ? 'Emoji' : 'Emotka niestandardowa'}: ${emoji.name}`,
-            value: `ID: ${emoji.id}\nTrafność: ${emoji.matchScore}%`,
-            inline: true,
-          })),
-          color: 0x3498db,
-        };
+      const embed = {
+        title: 'Wyniki wyszukiwania',
+        fields: emojis.map((emoji) => ({
+          name: `${emoji.type === 'emoji' ? 'Emoji' : 'Emotka niestandardowa'}: ${emoji.name}`,
+          value: `ID: ${emoji.id}\nTrafność: ${emoji.matchScore}%`,
+          inline: true,
+        })),
+        color: 0x3498db,
+      };
 
-        await interaction.reply({ embeds: [embed] });
-      } else {
-        await interaction.reply('Brak pasujących emotek!');
-      }
-    },
+      await interaction.reply({ embeds: [embed] });
+    } else {
+      await interaction.reply('Brak pasujących emotek!');
+    }
   },
-];
+};
 
+// Set up the REST client
 const rest = new REST({ version: '10' }).setToken('YOUR_BOT_TOKEN');
 
+// Register slash commands
 (async () => {
   try {
     console.log('Rozpoczynanie odświeżania komend...');
@@ -99,7 +100,7 @@ const rest = new REST({ version: '10' }).setToken('YOUR_BOT_TOKEN');
     // Replace 'YOUR_CLIENT_ID' with the actual client ID
     await rest.put(
       Routes.applicationCommands('YOUR_CLIENT_ID'),
-      { body: commands.map(command => command.data.toJSON()) },
+      { body: [module.exports.data.toJSON()] },
     );
 
     console.log('Zaktualizowano komendy pomyślnie!');
