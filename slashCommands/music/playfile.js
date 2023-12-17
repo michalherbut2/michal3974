@@ -7,11 +7,11 @@ let audioResource;
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("playfile")
-    .setDescription("Play music from an attached MP3 file or a direct link to an MP3 file")
+    .setDescription("Odtwórz muzykę z załączonego pliku MP3")
     .addStringOption((option) =>
       option
         .setName("file")
-        .setDescription("Direct link to an MP3 file or attach an MP3 file to your message")
+        .setDescription("Załącz plik MP3 do wiadomości")
         .setRequired(true)
     ),
 
@@ -27,26 +27,8 @@ module.exports = {
 
       const fileOption = interaction.options.getString("file");
 
-      let mp3FilePath;
-
-      // Check if the provided option is a valid URL
-      if (/^https?:\/\/.*\.(mp3)$/i.test(fileOption)) {
-        mp3FilePath = fileOption;
-      } else {
-        const attachedFiles = interaction.attachments.array();
-
-        if (attachedFiles.length === 0 || !attachedFiles[0].name.endsWith(".mp3")) {
-          return interaction.reply({
-            content: "Proszę podać poprawny link do pliku MP3 lub dołączyć plik MP3 do swojej wiadomości.",
-            ephemeral: true,
-          });
-        }
-
-        mp3FilePath = attachedFiles[0].url;
-      }
-
-      // Create an audio resource
-      audioResource = createAudioResource(mp3FilePath);
+      // Utwórz zasób audio
+      audioResource = createAudioResource(fileOption);
 
       const voiceConnection = joinVoiceChannel({
         channelId: voiceChannel.id,
@@ -54,21 +36,27 @@ module.exports = {
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
 
+      // Sprawdź i zatrzymaj poprzednią piosenkę
+      if (audioResource) {
+        audioResource.stop();
+      }
+
+      // Podłącz zasób audio do odtwarzacza
       voiceConnection.subscribe(player);
       player.play(audioResource);
 
-      // Event listener to detect when the playback ends
+      // Nasłuchuj zdarzenia zakończenia odtwarzania
       player.on(AudioPlayerStatus.Idle, () => {
         voiceConnection.destroy();
       });
 
       interaction.reply({
-        content: `Now playing: **${mp3FilePath}**`,
+        content: `Odtwarzam muzykę z pliku: **${fileOption}**`,
       });
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Błąd:", error);
       interaction.reply({
-        content: "An error occurred while playing the file.",
+        content: "Wystąpił błąd podczas odtwarzania muzyki.",
       });
     }
   },
