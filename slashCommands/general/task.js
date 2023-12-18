@@ -192,7 +192,7 @@ async function showTask(interaction, db) {
 
     if (!row)
       throw new Error('Nie znaleziono zadania o podanym ID na serwerze.');
-    console.log(row);
+    // console.log(row);
     interaction.reply(
       `Szczegóły zadania (ID: ${row.id}):\nData: ${formatDate(row.date)}\nTreść: ${row.content}\nDodatkowe informacje: ${row.additional_info}`
     );

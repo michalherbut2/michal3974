@@ -1,5 +1,5 @@
 const { REST, Routes } = require("discord.js");
-const { CLIENT_ID, GUILD_ID, TOKEN } = require("../config2.json");
+const { CLIENT_ID, GUILD_ID, TOKEN } = require("../config.json");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -47,10 +47,10 @@ const rest = new REST().setToken(TOKEN);
       Routes.applicationGuildCommands(CLIENT_ID, "883720564970250290"),
       { body: commands }
     );
-    // await rest.put( // babtoszownicy
-    //   Routes.applicationGuildCommands(CLIENT_ID, "852991784996175902"),
-    //   { body: commands }
-    // );
+    await rest.put( // babtoszownicy
+      Routes.applicationGuildCommands(CLIENT_ID, "852991784996175902"),
+      { body: commands }
+    );
     // await rest.put( // global
     //   Routes.applicationCommands(CLIENT_ID),
     //   { body: commands }

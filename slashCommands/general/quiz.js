@@ -5,7 +5,11 @@ const {
   EmbedBuilder,
   Collection,
 } = require("discord.js");
-const { createSimpleEmbed, createWarningEmbed, createSuccessEmbed } = require("../../computings/createEmbed");
+const {
+  createSimpleEmbed,
+  createWarningEmbed,
+  createSuccessEmbed,
+} = require("../../computings/createEmbed");
 
 const quizzes = [
   {
@@ -49,8 +53,8 @@ const quizzes = [
       {
         question:
           'W którym roku została wydana gra "Twierdza: Edycja Ostateczna"?',
-        answers: ["2010", "2012", "2014", "2016"],
-        correct: "2016",
+        answers: ["2010", "2014", "2018", "2023"],
+        correct: "2023",
       },
       {
         question: 'Jaki jest główny cel w grze "Twierdza: Edycja Ostateczna"?',
@@ -196,10 +200,12 @@ module.exports = {
     .setDescription("Rozpocznij quiz"),
 
   async execute(interaction) {
+    const startTime = Date.now();
+    const users = new Set()
     // const reactionEmoji = interaction.client.emojis.cache.length;
     // console.log(reactionEmoji);
 
-    const waitingTime = 60 // seconds
+    const waitingTime = 60; // seconds
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -207,13 +213,13 @@ module.exports = {
         .setLabel("Dołącz")
         .setEmoji("👍")
         .setStyle(1)
-        );
-    let count=0
+    );
+    let count = 0;
     await interaction.reply({
       embeds: [
         createSimpleEmbed(
           `Rozpoczynamy quiz! Aby dołączyć, kliknij przycisk poniżej.\nZapisy trwają przez <t:${
-            parseInt(Date.now() / 1000) + waitingTime
+            parseInt(startTime / 1000) + waitingTime
           }:R> sekund. :smiley:\nLiczba uczestników: ${count++}`
         ),
       ],
@@ -227,13 +233,18 @@ module.exports = {
       time: waitingTime * 1000,
     });
     collector.on("collect", i => {
+      if (users.has(i.user.id)) {
+         i.reply({
+          embeds: [createWarningEmbed(`Już dołączył(a): ${i.user.username}!`)],
+          ephemeral: true,
+        });
+        return setTimeout(() => i.deleteReply(), 3000);
+      }
+        
       // i.reply();
+      users.add(i.user.id)
       i.reply({
-        embeds: [
-          createSimpleEmbed(
-            `Dołączył(a): ${i.user.username}`
-          ),
-        ],
+        embeds: [createSimpleEmbed(`Dołączył(a): ${i.user.username}`)],
         ephemeral: true,
       });
       setTimeout(() => i.deleteReply(), 3000);
@@ -241,7 +252,7 @@ module.exports = {
         embeds: [
           createSimpleEmbed(
             `Rozpoczynamy quiz! Aby dołączyć, kliknij przycisk poniżej.\nZapisy trwają przez <t:${
-              parseInt(Date.now() / 1000) + waitingTime
+              parseInt(startTime / 1000) + waitingTime
             }:R> sekund. :smiley:\nLiczba uczestników: ${count++}`
           ),
         ],
@@ -272,8 +283,9 @@ module.exports = {
 
 // async function startQuiz(channel, quizParticipants) {
 async function startQuiz(interaction, quizParticipants) {
-
-  const guessingTime = 20 // seconds
+  const users = new Set()
+  let startTime = Date.now();
+  const guessingTime = 20; // seconds
 
   const quiz = quizzes[currentQuestionIndex];
   // console.log(quizParticipants);
@@ -284,10 +296,12 @@ async function startQuiz(interaction, quizParticipants) {
     const question =
       quiz.questions[Math.floor(Math.random() * quiz.questions.length)];
     const shuffledAnswers = shuffleArray(question.answers);
-    // console.log(Date.now());
+    // console.log(startTime);
     const questionEmbed = new EmbedBuilder()
       .setTitle(
-        `Kategoria: ${quiz.category} <t:${parseInt(Date.now() / 1000) + guessingTime}:R>`
+        `Kategoria: ${quiz.category} <t:${
+          parseInt(startTime / 1000) + guessingTime
+        }:R>`
       )
       .setDescription(question.question + "\nOdpowiedzi:")
       // .addFields("Odpowiedzi")
@@ -349,18 +363,28 @@ async function startQuiz(interaction, quizParticipants) {
     });
 
     collector.on("collect", async i => {
+      if (users.has(i.user.id)) {
+        await i.reply({
+          embeds: [
+            createWarningEmbed(
+              `${i.user.username} już udzielił(a) odpowiedzi!`
+            ),
+          ],
+          ephemeral: true,
+        });
+        return setTimeout(() => i.deleteReply(), 3000);
+      }
+         
+      users.add(i.user.id)
       const userChoice = parseInt(i.customId);
       const correctIndex = shuffledAnswers.indexOf(question.correct);
       const participant = quizParticipants.get(i.user.id);
       // console.log(shuffledAnswers, correctIndex);
       if (userChoice === correctIndex + 1) {
-        // await i.reply(
-        //   `Brawo! ${i.user.username} udzielił(a) poprawnej odpowiedzi!`
-        // );
         await i.reply({
           embeds: [
             createSuccessEmbed(
-          `Brawo! ${i.user.username} udzielił(a) poprawnej odpowiedzi!`
+              `Brawo! ${i.user.username} udzielił(a) poprawnej odpowiedzi!`
             ),
           ],
           ephemeral: true,
@@ -376,27 +400,12 @@ async function startQuiz(interaction, quizParticipants) {
           ],
           ephemeral: true,
         });
-        // i.deleteReply()
         setTimeout(() => i.deleteReply(), 3000);
       }
-
-      // currentQuestionIndex++;
-      // await collector.stop();
-      // // startQuiz(channel, quizParticipants);
-      // startQuiz(interaction, quizParticipants);
-      // message.delete()
     });
 
     collector.on("end", collected => {
-      // if (collected.size === 0) {
-      //   // channel.send("Czas na udzielenie odpowiedzi minął.");
-      //   currentQuestionIndex++;
-      //   // startQuiz(channel, quizParticipants);
-      //   startQuiz(interaction, quizParticipants);
-      //   // message.delete()
-      // }
       currentQuestionIndex++;
-      // startQuiz(channel, quizParticipants);
       startQuiz(interaction, quizParticipants);
     });
   } else {
