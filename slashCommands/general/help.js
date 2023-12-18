@@ -6,32 +6,6 @@ module.exports = {
     .setName("help")
     .setDescription("Pokazuje komendy!"),
   async execute(interaction) {
-    // console.log(interaction.channel);
-    // interaction.channel.send({ embeds: [createEmbed()] }); // const channel = interaction.channelchannel.send;
-    // interaction.channel.send({
-    //   embeds: [
-    //     // {
-    //     // title: 'Embed Title',
-    //     // description: 'Embed Description',
-    //     // color: 0x3498db, // You can use a color code or integer value
-    //     // fields: [
-    //     //   { name: 'Field 1', value: 'Value 1', inline: true },
-    //     //   { name: 'Field 2', value: 'Value 2', inline: true },
-    //     //   { name: 'Field 3', value: 'Value 3', inline: false },
-    //     //   { name: 'Field 4', value: 'Value 4', inline: false },
-    //     // ],
-    //     // footer: { text: 'Embed Footer' },
-    //     // }
-    //     createEmbed("Komendy", [
-    //       { name: "# play", value: "podaj **nazwę** z yt lub link"  },
-    //       { name: "*play*", value: "podaj **nazwę** z yt lub link"  },
-    //       { name: "__play__", value: "podaj **nazwę** z yt lub link"  },
-    //       { name: "__play__", value: "podaj **nazwę** z yt lub link"  },
-    //       { name: "__play__", value: "podaj **nazwę** z yt lub link"  },
-    //       { name: "__play__", value: "podaj **nazwę** z yt lub link"  },
-    //     ]),
-    //   ],
-    // }); // const channel = interaction.channelchannel.send;
     await interaction.reply({ embeds: [createEmbed("Komendy", content)] });
   },
 };

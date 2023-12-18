@@ -42,4 +42,7 @@ module.exports = {
 
   createWarningEmbed: description =>
     new EmbedBuilder().setColor(0xff0000).setDescription(description),
+  
+  createSuccessEmbed: description =>
+    new EmbedBuilder().setColor(0x3ba55c).setDescription(description),
 };

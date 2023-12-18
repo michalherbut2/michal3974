@@ -22,19 +22,6 @@ module.exports = {
         createDatabases(client);
         createAudioPlayers(client);
         await loadConfig(client);
-
-        // Set up listener for private messages
-        client.on('messageCreate', message => {
-            if (message.channel.type === 'DM' && !message.author.bot) {
-                // Respond to private messages
-                message.reply("Niestety nie potrafię rozmawiać na pv, ale tu masz listę komend jakie możesz użyć na serwerze:\n" +
-                    "KOMENDY: `/play`, `/skip`, `/pause`, `/unpause`, `/queue`, `/stop`, `/panel`, `/radio`, `/pętla`\n" +
-                    "Ogólne: `/nb`\n" +
-                    "Ostrzeżenia: `/poka_wszystkie_ostrzezenia`, `/poka_ostrzezenia`\n" +
-                    "Plusy: `/poka_wszystkie_plusy`, `/poka_plusy`\n" +
-                    "Dla adminów: `/ostrzezenie dodaj`, `/ostrzezenie usun`, `/ostrzezenie czysc`, `/config`, `/sprawdzaj_nieobecnosci`");
-            }
-        });
     }
 }
 

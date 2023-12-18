@@ -18,7 +18,7 @@ module.exports = client => {
         client.slashCommands.set(command.data.name, command);
       } else {
         console.log(
-          `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
+          `[WARNING] The command at ${file} is missing a required "data" or "execute" property.`
         );
       }
     }

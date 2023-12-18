@@ -1,9 +1,10 @@
-const { prefix, token } = require("./config.json");
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
+const { PREFIX, TOKEN } = require("./config.json");
+const { Client, GatewayIntentBits, Collection, Partials} = require("discord.js");
 const fs = require("fs");
 const resetUserInactivity = require("./computings/resetUserInactivity");
 const loadSlashCommands = require("./computings/loadSlashCommands");
 const reactOnRectutation = require("./computings/reactOnRectutation");
+const checkLinks = require("./computings/checkLinks");
 
 const client = new Client({
   intents: [
@@ -13,7 +14,15 @@ const client = new Client({
     GatewayIntentBits.GuildMembers, // .GUILD_MEMBERS, // privileged intent
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates, // .GUILD_VOICE_STATES,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageTyping,
+    GatewayIntentBits.DirectMessageReactions,
   ],
+  partials: [
+    Partials.Channel,
+    Partials.Message
+  ]
 });
 
 client.commands = new Collection();
@@ -58,11 +67,15 @@ for (const file of eventFiles) {
 
 //Command Manager
 client.on("messageCreate", async message => {
-  //Check if author is a client or the message was sent in dms and return
+  // console.log(message.channel,"\n\n",message.channel.type);
   if (message.author.bot) return;
-  if (message.channel.type === "dm") return;
+  if (message.guild === null)
+    // Odpowiedź na wiadomość prywatną
+    message.author.send("Siema! Niestety jeszcze nie potrafię nic robić w rozmowach prywatnych. Jeżeli chcesz poznać moje komendy wpisz /help na serwerze na którym jestem!");
+  //Check if author is a client or the message was sent in dms and return
+  if (message.channel.type === 1) return; // 1-dm,
 
-  //get prefix from config and prepare message so it can be read as a command
+  //get PREFIX from config and prepare message so it can be read as a command
   let messageArray = message.content.split(" ");
   let cmd = messageArray[0]
     .normalize("NFD")
@@ -70,13 +83,14 @@ client.on("messageCreate", async message => {
     .toLowerCase();
   let args = messageArray.slice(1);
 
-  //Check for prefix
-  if (!cmd.startsWith(prefix)) return;
+  //Check for PREFIX
+  if (!cmd.startsWith(PREFIX)) return;
   //Get the command from the commands collection and then if the command is found run the command file
-  let commandfile = client.commands.get(cmd.slice(prefix.length));
+  let commandfile = client.commands.get(cmd.slice(PREFIX.length));
   if (commandfile) commandfile.run(client, message, args);
 
   if (cmd.includes("imie")) await reactOnRectutation(message);
+  checkLinks(message)
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
@@ -92,6 +106,7 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 
 client.queue = new Collection();
 client.radio = new Collection();
+client.fileQueue = new Collection();
 client.slashCommands = new Collection();
 client.buttons = new Collection();
 client.config = new Collection();
@@ -113,4 +128,4 @@ process
   .on("uncaughtExceptionMonitor", console.error)
   .on("unhandledRejection", console.error);
 
-client.login(token);
+client.login(TOKEN);
