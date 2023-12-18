@@ -1,4 +1,4 @@
-const { PREFIX, TOKEN } = require("./config.json");
+const { PREFIX, TOKEN } = require("./config2.json");
 const { Client, GatewayIntentBits, Collection, Partials} = require("discord.js");
 const fs = require("fs");
 const resetUserInactivity = require("./computings/resetUserInactivity");

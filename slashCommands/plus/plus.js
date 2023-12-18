@@ -31,18 +31,19 @@ module.exports = {
     // .addStringOption(reasonField)
     .addSubcommand(subcommand =>
       subcommand
-        .setName("dodaj")
-        .setDescription("Dodaj plusa użytkownikowi")
+        .setName("dodatni")
+        .setDescription("Daj dodatniego plusa użytkownikowi")
         .addIntegerOption(plusNumField)
         .addUserOption(userField)
         .addStringOption(reasonField)
     )
     .addSubcommand(subcommand =>
       subcommand
-        .setName("usun")
-        .setDescription("Usuń plusa użytkownikowi")
+        .setName("ujemny")
+        .setDescription("Daj ujemnego plusa użytkownikowi")
         .addIntegerOption(plusNumField)
         .addUserOption(userField)
+        .addStringOption(reasonField)
     )
     .addSubcommand(subcommand =>
       subcommand
@@ -65,10 +66,10 @@ module.exports = {
     const userId = targetUser.id;
 
     switch (subCommand) {
-      case "dodaj":
+      case "dodatni":
         await addPlus(interaction, userId, db, pointRole);
         break;
-      case "usun":
+      case "ujemny":
         await removePlus(interaction, userId, db);
         break;
       case "czysc":
@@ -94,11 +95,11 @@ async function addPlus(interaction, userId, db, pointRole) {
 
   db.prepare(
     plusNum
-      ? `UPDATE plus SET plus_num = plus_num + ?, reason = reason || ', ' || ? WHERE user_id = ?`
+      ? `UPDATE plus SET plus_num = ?, reason = reason || ', ' || ? WHERE user_id = ?`
       : "INSERT INTO plus (plus_num, reason, user_id) VALUES (?, ?, ?)"
-  ).run(plusNumToAdd, reason, userId);
+  ).run(totalPlusNum, reason, userId);
 
-  const content = `<@${userId}> dostał **${plusNumToAdd}** plus(y) za: **${reason}**! Razem ma **${totalPlusNum}** plusy.`;
+  const content = `<@${userId}> dostał **${plusNumToAdd}** plusy dodatnie za: **${reason}**! Razem ma **${totalPlusNum}** plusy.`;
   interaction.reply({
     content: `<@${userId}>`,
     embeds: [createSimpleEmbed(content)],
@@ -107,14 +108,19 @@ async function addPlus(interaction, userId, db, pointRole) {
 
 async function removePlus(interaction, userId, db) {
   const plusNumToRemove = interaction.options.getInteger("liczba_plusow");
+  const reason = interaction.options.getString("powod");
   const plusNum = await getPlus(userId, db);
-  const totalPlusNum =
-    plusNum - plusNumToRemove > 0 ? plusNum - plusNumToRemove : 0;
+  const totalPlusNum = plusNum - plusNumToRemove
+    // plusNum - plusNumToRemove > 0 ? plusNum - plusNumToRemove : 0;
   await db
-    .prepare("UPDATE plus SET plus_num = ? WHERE user_id = ?")
-    .run(totalPlusNum, userId);
+    .prepare(
+      plusNum
+        ? "UPDATE plus SET plus_num = ?, reason = reason || ', ' || ? WHERE user_id = ?"
+        : "INSERT INTO plus (plus_num, reason, user_id) VALUES (?, ?, ?)"
+    )
+    .run(totalPlusNum, reason, userId);
 
-  const content = `<@${userId}> stracił ${plusNumToRemove} plusy! Razem ma ${totalPlusNum} plusy.`;
+  const content = `<@${userId}> dostał **${plusNumToRemove}** plusy ujemne za: **${reason}**! Razem ma ${totalPlusNum} plusy.`;
 
   interaction.reply({
     content: `<@${userId}>`,

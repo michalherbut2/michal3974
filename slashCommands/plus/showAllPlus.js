@@ -19,7 +19,7 @@ module.exports = {
       await Promise.all(
         rows.map(
           async (row, index) =>
-            `${index + 1}. <@${row.user_id}> - ${
+            `${index + 1}. <@${row.user_id}>: ${
               row.plus_num
             } plusów za: **${row.reason}**`
         )
