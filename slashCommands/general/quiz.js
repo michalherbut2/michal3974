@@ -21,6 +21,26 @@ const quizzes = [
         correct: "4",
       },
       {
+        question: "Ile wynosi 5 * 5?",
+        answers: ["20", "25", "30", "35"],
+        correct: "25",
+      },
+      {
+        question: "Ile wynosi 3^4?",
+        answers: ["27", "64", "81", "125"],
+        correct: "81",
+      },
+      {
+        question: "Rozwiąż równanie: 2x + 5 = 15",
+        answers: ["4", "5", "6", "7"],
+        correct: "5",
+      },
+      {
+        question: "Jaki jest iloczyn 8 i 7?",
+        answers: ["48", "54", "56", "64"],
+        correct: "56",
+      },
+      {
         question: "Jaka jest pierwiastek kwadratowy z 9?",
         answers: ["2", "3", "4", "5"],
         correct: "3",
@@ -34,6 +54,26 @@ const quizzes = [
         question: "W którym roku wybuchła II wojna światowa?",
         answers: ["1935", "1938", "1939", "1941"],
         correct: "1939",
+      },
+      {
+        question: "W którym roku rozpadła się ZSRR?",
+        answers: ["1989", "1991", "1993", "1995"],
+        correct: "1991",
+      },
+      {
+        question: "Kto był prezydentem USA podczas wojny secesyjnej?",
+        answers: ["Abraham Lincoln", "Andrew Johnson", "Ulysses S. Grant", "James Buchanan"],
+        correct: "Abraham Lincoln",
+      },
+      {
+        question: "Który kraj był pierwszym, który wprowadził powszechne prawo wyborcze dla kobiet?",
+        answers: ["Stany Zjednoczone", "Wielka Brytania", "Nowa Zelandia", "Szwecja"],
+        correct: "Nowa Zelandia",
+      },
+      {
+        question: "Kto był przywódcą rewolucji październikowej w Rosji?",
+        answers: ["Lenin", "Stalin", "Trocki", "Chruszczow"],
+        correct: "Lenin",
       },
       {
         question: "Kto był pierwszym prezydentem Stanów Zjednoczonych?",
@@ -57,6 +97,16 @@ const quizzes = [
         correct: "2023",
       },
       {
+        question: 'Który zasób jest najważniejszy dla rozbudowy twierdzy w grze "Twierdza: Edycja Ostateczna"?',
+        answers: ["Kamień", "Drewno", "Złoto", "Żywność"],
+        correct: "Kamień",
+      },
+      {
+        question: 'Jaka jednostka wojskowa jest najskuteczniejsza przeciwko oblężeniom w grze "Twierdza: Edycja Ostateczna"?',
+        answers: ["Łucznicy", "Katapulty", "Mangonel", "Rycerze"],
+        correct: "Katapulty",
+      },
+      {
         question: 'Jaki jest główny cel w grze "Twierdza: Edycja Ostateczna"?',
         answers: [
           "Budowanie i rozbudowa twierdzy",
@@ -76,6 +126,21 @@ const quizzes = [
           'W jakim roku została wydana gra "The Legend of Zelda: Breath of the Wild"?',
         answers: ["2015", "2016", "2017", "2018"],
         correct: "2017",
+      },
+      {
+        question: 'Która gra zdobyła tytuł "Gra Roku" na The Game Awards 2021?',
+        answers: ["Cyberpunk 2077", "Resident Evil Village", "It Takes Two", "Deathloop"],
+        correct: "It Takes Two",
+      },
+      {
+        question: 'Która z poniższych gier należy do gatunku battle royale?',
+        answers: ["The Witcher 3: Wild Hunt", "Fortnite", "Assassin's Creed: Valhalla", "Red Dead Redemption 2"],
+        correct: "Fortnite",
+      },
+      {
+        question: 'Kto jest twórcą serii gier "Metal Gear Solid"?',
+        answers: ["Hideo Kojima", "Shigeru Miyamoto", "Todd Howard", "Gabe Newell"],
+        correct: "Hideo Kojima",
       },
       {
         question: 'Która gra zdobyła tytuł "Gra Roku" na The Game Awards 2020?',
@@ -107,6 +172,16 @@ const quizzes = [
         question: "Ile wynosi pierwiastek kwadratowy z liczby 16?",
         answers: ["2", "4", "8", "16"],
         correct: "4",
+      },
+      {
+        question: 'Który z elementów chemicznych ma symbol "O"?',
+        answers: ["Osm", "Olo", "Ogon", "Tlen"],
+        correct: "Tlen",
+      },
+      {
+        question: "Które państwo było gospodarzem Letnich Igrzysk Olimpijskich w 2016 roku?",
+        answers: ["Chiny", "Brazylia", "Rosja", "Stany Zjednoczone"],
+        correct: "Brazylia",
       },
       {
         question: "Które zwierzę jest największe na świecie?",
