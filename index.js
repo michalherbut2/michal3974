@@ -65,15 +65,49 @@ for (const file of eventFiles) {
   }
 }
 
-//Command Manager
-client.on("messageCreate", async message => {
-  // console.log(message.channel,"\n\n",message.channel.type);
-  if (message.author.bot) return;
-  if (message.guild === null)
-    // Odpowiedź na wiadomość prywatną
-    message.author.send("Siema! Niestety jeszcze nie potrafię nic robić w rozmowach prywatnych. Jeżeli chcesz poznać moje komendy wpisz /help na serwerze na którym jestem!");
-  //Check if author is a client or the message was sent in dms and return
-  if (message.channel.type === 1) return; // 1-dm,
+client.on("messageCreate", async (message) => {
+  // Ignore messages from other bots or messages in DMs
+  if (message.author.bot || message.channel.type === 1) return;
+
+  // Check if the message content is "Sekret!"
+  if (message.content.toLowerCase() === "sekret!") {
+    // Ask for the user's ID
+    message.channel.send("Podaj swoje ID:");
+
+    // Collect the user's response
+    const filter = (response) => response.author.id === message.author.id;
+    const collector = message.channel.createMessageCollector({
+      filter,
+      max: 1,
+      time: 30000, // 30 seconds to respond
+    });
+
+    collector.on("collect", async (collected) => {
+      const userId = collected.content;
+
+      try {
+        // Attempt to fetch the user by ID
+        const user = await client.users.fetch(userId);
+
+        // Check if the user allows DMs
+        if (user.dmChannel) {
+          // Send a single message to the user
+          user.send("Wiadomość dla Ciebie!");
+
+          message.channel.send(`Wysłano wiadomość do użytkownika ${user.tag}`);
+        } else {
+          // If the user does not allow DMs, inform the sender
+          message.channel.send(`Użytkownik ${user.tag} nie zezwala na otrzymywanie wiadomości prywatnych.`);
+        }
+      } catch (error) {
+        // If an error occurs, handle it
+        console.error("Error:", error);
+        message.channel.send("Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.");
+      }
+    });
+  }
+});
+
 
   //get PREFIX from config and prepare message so it can be read as a command
   let messageArray = message.content.split(" ");
