@@ -124,13 +124,17 @@ module.exports = {
 // setInterval(updateTasks, 15 * 60 * 1000);
 
 async function addTask(interaction, db) {
-
   const date = interaction.options.getString('data');
   const content = interaction.options.getString('tresc');
   const additionalInfo = interaction.options.getString('info');
 
   if (!date || !content || !additionalInfo) {
-    throw new Error('Użycie: !addtask <data wykonania> <treść zadania> <dodatkowe informacje>');
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Dodawania Zadania')
+      .setDescription('Użycie: `/task dodaj --data <data wykonania> --tresc <treść zadania> --info <dodatkowe informacje>`');
+
+    throw new Error({ embeds: [errorEmbed] });
   }
 
   try {
@@ -141,89 +145,175 @@ async function addTask(interaction, db) {
       additionalInfo,
     );
 
-    interaction.reply(`Zadanie zostało dodane pomyślnie!`);
+    const successEmbed = new MessageEmbed()
+      .setColor('#00ff00')
+      .setTitle('Zadanie Dodane Pomyślnie')
+      .setDescription('Zadanie zostało dodane pomyślnie!');
+
+    interaction.reply({ embeds: [successEmbed] });
     await setReminders(interaction, date, content);
   } catch (dbError) {
     console.error('Błąd bazy danych przy dodawaniu zadania:', dbError);
-    interaction.reply(dbError.message);
+
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Dodawania Zadania')
+      .setDescription('Wystąpił błąd podczas dodawania zadania: ' + dbError.message);
+
+    interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
+
 async function listTasks(interaction, db) {
   try {
-    // console.log(interaction);
     const rows = await db.prepare('SELECT id, date, content FROM task WHERE user_id = ?').all(interaction.user.id);
 
-    if (rows.length === 0) 
+    if (rows.length === 0) {
       return interaction.reply('Brak zaplanowanych zadań.');
+    }
 
-    // console.log(rows);
-    const taskList = rows.map((row) => `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`);
-    interaction.reply(`Lista zadań:\n${taskList.join('\n')}`);
+    const embed = new MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle('Lista Zadań')
+      .setDescription('Oto lista Twoich zadań:');
+
+    rows.forEach((row) => {
+      embed.addField(`ID: ${row.id}`, `Data: ${formatDate(row.date)}\nTreść: ${row.content}`);
+    });
+
+    interaction.reply({ embeds: [embed] });
   } catch (dbError) {
     console.error('Błąd bazy danych przy listowaniu zadań:', dbError);
     interaction.reply('Wystąpił błąd podczas pobierania listy zadań: ' + dbError.message);
   }
 }
-
 async function listAllTasks(interaction, db) {
   try {
     const rows = await db.prepare('SELECT id, date, content FROM task').all();
 
-    if (rows.length === 0) 
-      return interaction.reply('Brak zaplanowanych zadań na serwerze.');
+    if (rows.length === 0) {
+      const embed = new MessageEmbed()
+        .setColor('#ff0000')
+        .setTitle('Brak Zadań')
+        .setDescription('Brak zaplanowanych zadań na serwerze.');
 
-    const taskList = rows.map(row => `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`);
-    interaction.reply(`Lista wszystkich zadań na serwerze:\n${taskList.join('\n')}`);
+      return interaction.reply({ embeds: [embed] });
+    }
+
+    const embed = new MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle('Lista Wszystkich Zadań na Serwerze')
+      .setDescription('Oto lista wszystkich zadań na serwerze:');
+
+    rows.forEach((row) => {
+      embed.addField(`ID: ${row.id}`, `Data: ${formatDate(row.date)}\nTreść: ${row.content}`);
+    });
+
+    interaction.reply({ embeds: [embed] });
   } catch (dbError) {
     console.error('Błąd bazy danych przy listowaniu wszystkich zadań:', dbError);
-    interaction.reply('Wystąpił błąd podczas pobierania listy zadań: ' + dbError.message);
+
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Bazy Danych')
+      .setDescription('Wystąpił błąd podczas pobierania listy zadań: ' + dbError.message);
+
+    interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
+
 async function showTask(interaction, db) {
   const taskId = interaction.options.getString('id');
-  
-  if (!taskId)
-    throw new Error('Użycie: !showtask <ID zadania>');
+
+  if (!taskId) {
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Wyświetlania Zadania')
+      .setDescription('Użycie: `/task szczegoly --id <ID zadania>`');
+
+    throw new Error({ embeds: [errorEmbed] });
+  }
 
   try {
     const row = await db.prepare('SELECT * FROM task WHERE id = ?').get(taskId);
 
-    if (!row)
-      throw new Error('Nie znaleziono zadania o podanym ID na serwerze.');
-    // console.log(row);
-    interaction.reply(
-      `Szczegóły zadania (ID: ${row.id}):\nData: ${formatDate(row.date)}\nTreść: ${row.content}\nDodatkowe informacje: ${row.additional_info}`
-    );
+    if (!row) {
+      const notFoundEmbed = new MessageEmbed()
+        .setColor('#ff0000')
+        .setTitle('Nie Znaleziono Zadania')
+        .setDescription('Nie znaleziono zadania o podanym ID na serwerze.');
+
+      throw new Error({ embeds: [notFoundEmbed] });
+    }
+
+    const taskEmbed = new MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle(`Szczegóły Zadania (ID: ${row.id})`)
+      .setDescription(`Data: ${formatDate(row.date)}\nTreść: ${row.content}\nDodatkowe informacje: ${row.additional_info}`);
+
+    interaction.reply({ embeds: [taskEmbed] });
   } catch (dbError) {
     console.error('Błąd bazy danych przy pokazywaniu szczegółów zadania:', dbError);
-    interaction.reply('Wystąpił błąd podczas pobierania informacji o zadaniu: ' + dbError.message);
+
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Wyświetlania Zadania')
+      .setDescription('Wystąpił błąd podczas pobierania informacji o zadaniu: ' + dbError.message);
+
+    interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
 async function removeTask(interaction, db) {
   const taskId = interaction.options.getString('id');
 
-  if (!taskId)
-    throw new Error('Użycie: !removetask <ID zadania>');
+  if (!taskId) {
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Usuwania Zadania')
+      .setDescription('Użycie: `/task usun --id <ID zadania>`');
+
+    throw new Error({ embeds: [errorEmbed] });
+  }
 
   try {
     const result = await db.prepare('DELETE FROM task WHERE id = ?').run(taskId);
 
-    if (result.changes === 0)
-      throw new Error('Nie znaleziono zadania o podanym ID na serwerze.');
+    if (result.changes === 0) {
+      const notFoundEmbed = new MessageEmbed()
+        .setColor('#ff0000')
+        .setTitle('Nie Znaleziono Zadania')
+        .setDescription('Nie znaleziono zadania o podanym ID na serwerze.');
 
-    interaction.reply('Zadanie zostało usunięte pomyślnie.');
+      throw new Error({ embeds: [notFoundEmbed] });
+    }
+
+    const successEmbed = new MessageEmbed()
+      .setColor('#00ff00')
+      .setTitle('Zadanie Usunięte Pomyślnie')
+      .setDescription('Zadanie zostało usunięte pomyślnie.');
+
+    interaction.reply({ embeds: [successEmbed] });
   } catch (dbError) {
     console.error('Błąd bazy danych przy usuwaniu zadania:', dbError);
-    interaction.reply('Wystąpił błąd podczas usuwania zadania: ' + dbError.message);
+
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Usuwania Zadania')
+      .setDescription('Wystąpił błąd podczas usuwania zadania: ' + dbError.message);
+
+    interaction.reply({ embeds: [errorEmbed] });
   }
 }
+
 
 async function updateTasks(interaction, db) {
   try {
     const rows = await db.prepare('SELECT * FROM task').all();
+
+    const reminders = [];
 
     for (const row of rows) {
       const taskDate = new Date(row.date);
@@ -231,18 +321,44 @@ async function updateTasks(interaction, db) {
 
       if (taskDate.getTime() <= currentTime.getTime() + 15 * 60 * 1000) {
         const user = await interaction.client.users.fetch(row.user_id);
-        user.send(
-          `Przypomnienie: Masz zadanie "${row.content}" do wykonania w ciągu 15 minut! Dodatkowe informacje: ${row.additional_info}`
-        );
-        // interaction.reply('Zadania zaktualizowane!');
+
+        reminders.push({
+          userId: user.id,
+          content: row.content,
+          additionalInfo: row.additional_info,
+        });
       }
     }
-    interaction.reply('Zadania zaktualizowane!');
+
+    if (reminders.length > 0) {
+      const reminderEmbed = new MessageEmbed()
+        .setColor('#ffcc00')
+        .setTitle('Przypomnienia o Zadaniach')
+        .setDescription('Oto przypomnienia o zadaniach do wykonania w ciągu 15 minut:');
+
+      reminders.forEach((reminder) => {
+        reminderEmbed.addField(
+          `Użytkownik: ${reminder.userId}`,
+          `Zadanie: "${reminder.content}"\nDodatkowe informacje: ${reminder.additionalInfo}`
+        );
+      });
+
+      interaction.reply({ embeds: [reminderEmbed] });
+    } else {
+      interaction.reply('Brak zadań do wykonania w ciągu 15 minut.');
+    }
   } catch (dbError) {
     console.error('Błąd bazy danych przy aktualizacji zadań:', dbError);
-    interaction.reply('Błąd bazy danych przy aktualizacji zadań: ' + dbError.message);
+
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Aktualizacji Zadań')
+      .setDescription('Wystąpił błąd podczas aktualizacji zadań: ' + dbError.message);
+
+    interaction.reply({ embeds: [errorEmbed] });
   }
 }
+
 
 async function setReminders(interaction, date, content) {
   const serverId = interaction.guild.id
@@ -253,10 +369,25 @@ async function setReminders(interaction, date, content) {
     const oneDayBefore = new Date(taskDate.getTime() - 24 * 60 * 60 * 1000);
     const oneHourBefore = new Date(taskDate.getTime() - 60 * 60 * 1000);
 
+async function setReminders(interaction, date, content) {
+  const serverId = interaction.guild.id;
+  const userId = interaction.user.id;
+  const client = interaction.client;
+
+  try {
+    const taskDate = new Date(date);
+    const oneDayBefore = new Date(taskDate.getTime() - 24 * 60 * 60 * 1000);
+    const oneHourBefore = new Date(taskDate.getTime() - 60 * 60 * 1000);
+
     await setTimeout(() => {
       client.guilds.fetch(serverId).then(guild => {
         guild.members.fetch(userId).then(user => {
-          user.send(`Przypomnienie: Masz zadanie "${content}" do wykonania za 24 godziny!`);
+          const reminderEmbed = new MessageEmbed()
+            .setColor('#ffcc00')
+            .setTitle('Przypomnienie o Zadaniu')
+            .setDescription(`Masz zadanie "${content}" do wykonania za 24 godziny!`);
+
+          user.send({ embeds: [reminderEmbed] });
         });
       });
     }, oneDayBefore.getTime() - Date.now());
@@ -264,7 +395,12 @@ async function setReminders(interaction, date, content) {
     await setTimeout(() => {
       client.guilds.fetch(serverId).then((guild) => {
         guild.members.fetch(userId).then((user) => {
-          user.send(`Przypomnienie: Masz zadanie "${content}" do wykonania za 1 godzinę!`);
+          const reminderEmbed = new MessageEmbed()
+            .setColor('#ffcc00')
+            .setTitle('Przypomnienie o Zadaniu')
+            .setDescription(`Masz zadanie "${content}" do wykonania za 1 godzinę!`);
+
+          user.send({ embeds: [reminderEmbed] });
         });
       });
     }, oneHourBefore.getTime() - Date.now());
@@ -273,18 +409,42 @@ async function setReminders(interaction, date, content) {
   }
 }
 
+
 async function clearTasks(interaction, db) {
   try {
     await db.prepare('DELETE FROM task').run();
-    interaction.reply('Wszystkie zadania usunięte!');
+
+    const successEmbed = new MessageEmbed()
+      .setColor('#00ff00')
+      .setTitle('Wyczyszczono Zadania')
+      .setDescription('Wszystkie zadania zostały usunięte pomyślnie!');
+
+    interaction.reply({ embeds: [successEmbed] });
   } catch (dbError) {
     console.error('Błąd bazy danych przy usuwaniu zadań:', dbError);
-    interaction.reply('Wystąpił błąd podczas usuwania zadań: ' + dbError.message);
+
+    const errorEmbed = new MessageEmbed()
+      .setColor('#ff0000')
+      .setTitle('Błąd Usuwania Zadań')
+      .setDescription('Wystąpił błąd podczas usuwania zadań: ' + dbError.message);
+
+    interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
+
 function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
+  const options = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric', 
+    weekday: 'long', 
+    hour: 'numeric', 
+    minute: 'numeric', 
+    second: 'numeric', 
+    timeZoneName: 'short' 
+  };
+
   const formattedDate = new Date(dateString).toLocaleDateString('pl-PL', options);
   return formattedDate;
 }
