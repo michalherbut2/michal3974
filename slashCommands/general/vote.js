@@ -26,7 +26,7 @@ module.exports = {
     const description = interaction.options.getString("opis");
     const pro = interaction.options.getString("za") || "za";
     const opp = interaction.options.getString("przeciw") || "przeciw";
-    const time = parseTimeToSeconds(interaction.options.getString("czas"));
+    const time = parseTimeToSeconds(interaction.options.getString("czas") || '1m');
     // Create buttons for proponents and opponents
     const proponentButton = new ButtonBuilder()
       .setCustomId("proponent")
@@ -155,7 +155,7 @@ module.exports = {
 function parseTimeToSeconds(timeString) {
   const regex = /^(\d+)([smhd])$/;
   const match = timeString.match(regex);
-  if (!match) return 60000; // Default to 60 seconds if invalid format
+  if (!match) return 60; // Default to 60 seconds if invalid format
   const [, amount, unit] = match;
   const multiplier = { s: 1, m: 60, h: 3600, d: 86400 };
   return parseInt(amount) * multiplier[unit];

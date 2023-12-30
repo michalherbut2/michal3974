@@ -34,7 +34,6 @@ const commandFiles = fs
 for (const file of commandFiles) {
   const props = require(`./commands/${file}`);
   console.log(`${file} loaded`);
-  ``;
   client.commands.set(props.config.name, props);
 }
 
@@ -90,7 +89,7 @@ client.on("messageCreate", async message => {
   if (commandfile) commandfile.run(client, message, args);
 
   if (cmd.includes("imie")) await reactOnRectutation(message);
-  checkLinks(message)
+  // checkLinks(message)
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
