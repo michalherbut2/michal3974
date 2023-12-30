@@ -22,18 +22,18 @@ module.exports = {
   ),
 
   async execute(interaction) {
-    const startTime=Date.now()
+    const startTime = Date.now()
     const description = interaction.options.getString("opis");
     const pro = interaction.options.getString("za") || "za";
     const opp = interaction.options.getString("przeciw") || "przeciw";
     const time = parseTimeToSeconds(interaction.options.getString("czas") || '1m');
+    const endTime = parseInt(startTime / 1000) + time
     // Create buttons for proponents and opponents
     const proponentButton = new ButtonBuilder()
       .setCustomId("proponent")
       .setLabel(pro)
       .setEmoji('😎')
       .setStyle(ButtonStyle.Success);
-      
       
       const opponentButton = new ButtonBuilder()
       .setCustomId("opponent")
@@ -58,7 +58,7 @@ module.exports = {
     // Send the initial message with buttons and embed
     const votingEmbed = new EmbedBuilder()
       .setColor("#3498db")
-      .setTitle(`Plebiscyt kończy się <t:${parseInt(startTime / 1000) + time}:R>`)
+      .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
       .setDescription(description)
       .addFields(proponents, opponents);
 
@@ -68,33 +68,15 @@ module.exports = {
       components: [row],
     });
 
-    // Create a filter to listen for button clicks
-    const filter = i => {
-      i.deferUpdate();
-      return (i.customId === 'proponent' || i.customId === 'opponent');
-
-      // return (
-      //   (i.customId === "proponent" || i.customId === "opponent") &&
-      //   !votedUsers.has(i.user.id)
-      // );
-    };
-
     // Create a collector for button clicks
-    const collector = interaction.channel.createMessageComponentCollector({
-      filter,
+    const collector = message.createMessageComponentCollector({
+      // filter,
       time: time * 1000, // 60 seconds voting time
     });
 
     // Listen for button clicks
     collector.on("collect", i => {
-      // votedUsers.add(i.user.id);
       const userId = i.user.id;
-
-      // if (i.customId === "proponent") {
-      //   proponents.value = (++proponents.value).toString();
-      // } else if (i.customId === "opponent") {
-      //   opponents.value = (++opponents.value).toString();
-      // }
 
       // Check if the user has voted before
       if (userVotes.has(userId)) {
@@ -122,7 +104,7 @@ module.exports = {
       // Update the embed with real-time vote counts
       const votingEmbed = new EmbedBuilder()
         .setColor("#3498db")
-        .setTitle(`Plebiscyt kończy się <t:${parseInt(startTime / 1000) + time*60}:R>`)
+        .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
         .setDescription(description)
         .addFields(proponents, opponents);
 
@@ -145,9 +127,7 @@ module.exports = {
         embeds: [votingEmbed],
         components: [],
       });
-      // interaction.followUp(
-      //   `Finito! Za: ${proponents.value}, Przeciw: ${opponents.value}`
-      // );
+      console.log(collected);
     });
   },
 };
