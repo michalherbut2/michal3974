@@ -1,133 +1,113 @@
-const {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  SlashCommandBuilder,
-} = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("vote")
-    .setDescription("zrób głosowanie")
-    .addStringOption(option =>
-      option.setName("opis").setDescription("co głosujemy")
+    .setDescription("Zrób głosowanie")
+    .addStringOption((option) =>
+      option.setName("opis").setDescription("Co głosujemy")
     )
-    .addStringOption(option => option.setName("za").setDescription("tekst za"))
-    .addStringOption(option =>
-      option.setName("przeciw").setDescription("tekst przeciw")
-  )
-  .addStringOption(option =>
-    option.setName("czas").setDescription("jak długo np. 1s, 2m, 3h, 4d")
-  ),
+    .addStringOption((option) =>
+      option.setName("za").setDescription("Tekst za")
+    )
+    .addStringOption((option) =>
+      option.setName("przeciw").setDescription("Tekst przeciw")
+    )
+    .addStringOption((option) =>
+      option.setName("czas").setDescription("Jak długo np. 1s, 2m, 3h, 4d")
+    ),
 
   async execute(interaction) {
-    const startTime = Date.now()
+    const startTime = Date.now();
+    const endTime =
+      startTime +
+      parseTimeToSeconds(interaction.options.getString("czas") || "1m") * 1000;
+
     const description = interaction.options.getString("opis");
     const pro = interaction.options.getString("za") || "za";
     const opp = interaction.options.getString("przeciw") || "przeciw";
-    const time = parseTimeToSeconds(interaction.options.getString("czas") || '1m');
-    const endTime = parseInt(startTime / 1000) + time
-    // Create buttons for proponents and opponents
-    const proponentButton = new ButtonBuilder()
-      .setCustomId("proponent")
-      .setLabel(pro)
-      .setEmoji('😎')
-      .setStyle(ButtonStyle.Success);
-      
-      const opponentButton = new ButtonBuilder()
-      .setCustomId("opponent")
-      .setLabel(opp)
-      .setEmoji('🔥')
-      .setStyle(ButtonStyle.Danger);
+    const time =
+      parseTimeToSeconds(interaction.options.getString("czas") || "1m");
 
-    // Create a row with the buttons
-    const row = new ActionRowBuilder().addComponents(
-      proponentButton,
-      opponentButton
-    );
+    const proEmoji = "👍"; // Emotka lajka w górę
+    const oppEmoji = "👎"; // Emotka drogi w dół
 
-    // Variables to store vote counts
-    let proponents = { name: pro, value: "0", inline: true };
-    let opponents = { name: opp, value: "0", inline: true };
-
-    // Set to store user IDs who have voted
-    // const votedUsers = new Set();
-    const userVotes = new Map();
-
-    // Send the initial message with buttons and embed
+    // Wyślij początkową wiadomość z embedem
     const votingEmbed = new EmbedBuilder()
       .setColor("#3498db")
-      .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
+      .setTitle(`Plebiscyt kończy się <t:${Math.floor(endTime / 1000)}:R>`)
       .setDescription(description)
-      .addFields(proponents, opponents);
+      .setFooter("Głosowanie trwa");
 
-    // Send the initial message with buttons and embed
     const message = await interaction.reply({
+      content: "Oddaj swój głos!",
       embeds: [votingEmbed],
-      components: [row],
     });
 
-    // Create a collector for button clicks
-    const collector = message.createMessageComponentCollector({
-      // filter,
-      time: time * 1000, // 60 seconds voting time
+    // Dodaj emotki pod wiadomością
+    await message.react(proEmoji);
+    await message.react(oppEmoji);
+
+    // Utwórz kolektor reakcji
+    const filter = (reaction, user) => {
+      return [proEmoji, oppEmoji].includes(reaction.emoji.name) && !user.bot;
+    };
+
+    const collector = message.createReactionCollector({
+      filter,
+      time: time * 1000,
     });
 
-    // Listen for button clicks
-    collector.on("collect", i => {
-      const userId = i.user.id;
+    // Nasłuchuj zdarzeń kolektora
+    collector.on("collect", (reaction, user) => {
+      const userId = user.id;
 
-      // Check if the user has voted before
-      if (userVotes.has(userId)) {
-        // If the user has voted, toggle their vote
-        if (i.customId === 'proponent' && userVotes.get(userId) === 'opponent') {
-          proponents.value = (++proponents.value).toString();
-          opponents.value = (--opponents.value).toString();
-          userVotes.set(userId, 'proponent');
-        } else if (i.customId === 'opponent' && userVotes.get(userId) === 'proponent') {
-          proponents.value = (--proponents.value).toString();
-          opponents.value = (++opponents.value).toString();
-          userVotes.set(userId, 'opponent');
-        }
-      } else {
-        // If the user has not voted, record their vote
-        if (i.customId === 'proponent') {
-          proponents.value = (++proponents.value).toString();
-          userVotes.set(userId, 'proponent');
-        } else if (i.customId === 'opponent') {
-          opponents.value = (++opponents.value).toString();
-          userVotes.set(userId, 'opponent');
-        }
+      if (reaction.emoji.name === proEmoji) {
+        // Obsłuż głos "lajk w górę"
+        proponents.value = (++proponents.value).toString();
+        userVotes.set(userId, 'proponent');
+      } else if (reaction.emoji.name === oppEmoji) {
+        // Obsłuż głos "dróżka w dół"
+        opponents.value = (++opponents.value).toString();
+        userVotes.set(userId, 'opponent');
       }
 
-      // Update the embed with real-time vote counts
-      const votingEmbed = new EmbedBuilder()
+      // Zaktualizuj wiadomość z wynikami
+      const updatedEmbed = new EmbedBuilder()
         .setColor("#3498db")
-        .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
+        .setTitle(`Plebiscyt kończy się <t:${Math.floor(endTime / 1000)}:R>`)
         .setDescription(description)
-        .addFields(proponents, opponents);
+        .addFields(proponents, opponents)
+        .setFooter("Głosowanie trwa");
 
-      // Edit the original message with updated embed
       message.edit({
-        embeds: [votingEmbed],
-        components: [row],
+        content: "Oddaj swój głos!",
+        embeds: [updatedEmbed],
       });
     });
 
-    // Listen for the end of the voting session
-    collector.on("end", collected => {
-      // Display the final results
-      const votingEmbed = new EmbedBuilder()
+    // Zakończ kolektor po upływie czasu
+    collector.on("end", (collected) => {
+      // Wyślij ostateczne wyniki głosowania
+      const resultEmbed = new EmbedBuilder()
         .setColor("#3498db")
-        .setTitle(`Plebiscyt zakończony!`)
+        .setTitle("Plebiscyt zakończony!")
         .setDescription(description)
         .addFields(proponents, opponents);
+
+      if (proponents.value > opponents.value) {
+        resultEmbed.addField("Wynik", `${pro} zwycięża! 🎉`, true);
+      } else if (proponents.value < opponents.value) {
+        resultEmbed.addField("Wynik", `${opp} zwycięża! 🎉`, true);
+      } else {
+        resultEmbed.addField("Wynik", "Remis! 🤝", true);
+      }
+
       message.edit({
-        embeds: [votingEmbed],
+        content: "Głosowanie zakończone!",
+        embeds: [resultEmbed],
         components: [],
       });
-      console.log(collected);
     });
   },
 };
@@ -135,7 +115,7 @@ module.exports = {
 function parseTimeToSeconds(timeString) {
   const regex = /^(\d+)([smhd])$/;
   const match = timeString.match(regex);
-  if (!match) return 60; // Default to 60 seconds if invalid format
+  if (!match) return 60; // Domyślnie 60 sekund w przypadku nieprawidłowego formatu
   const [, amount, unit] = match;
   const multiplier = { s: 1, m: 60, h: 3600, d: 86400 };
   return parseInt(amount) * multiplier[unit];
