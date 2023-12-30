@@ -76,6 +76,7 @@ module.exports = {
 
     // Listen for button clicks
     collector.on("collect", i => {
+      i.deferUpdate()
       const userId = i.user.id;
 
       // Check if the user has voted before
