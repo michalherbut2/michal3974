@@ -2,6 +2,7 @@ const checkInactivity = require("../computings/checkInactivity");
 const createAudioPlayers = require("../computings/createAudioPlayers");
 const createDatabases = require("../computings/createDatabases");
 const loadConfig = require("../computings/loadConfig");
+const os = require('os');
 
 module.exports = {
     name: 'ready',
@@ -24,6 +25,12 @@ module.exports = {
         await loadConfig(client);
     }
 }
+function formatBytes(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes === 0) return '0 Byte';
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
 
 function updatePresence(client) {
     const activities = [
@@ -32,7 +39,11 @@ function updatePresence(client) {
         { name: `Jestem na ${client.guilds.cache.size} serwerach!` },
         { name: `Pracuję bez przerwy: ${formatUptime(client.uptime)}` },
         { name: "Jak pogoda?" },
+        { name: `Zużycie CPU: ${os.cpus()[0].usage.toFixed(2)}%` },
+        { name: `Zużycie RAM: ${formatBytes(os.totalmem() - os.freemem())} / ${formatBytes(os.totalmem())}` },
+        // Add more activities as needed
     ];
+
 
     const randomActivity = activities[Math.floor(Math.random() * activities.length)];
 
