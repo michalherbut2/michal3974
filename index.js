@@ -103,6 +103,15 @@ client.on("voiceStateUpdate", (oldState, newState) => {
   }
 });
 
+bot.player = new Player(bot, {
+  leaveOnEnd: true,
+  leaveOnStop: true,
+  leaveOnEmpty: true,
+  leaveOnEmptyCooldown: 60000,
+  autoSelfDeaf: true,
+  initialVolume: 100
+});
+
 client.queue = new Collection();
 client.radio = new Collection();
 client.fileQueue = new Collection();
