@@ -1,7 +1,7 @@
 const { REST, Routes } = require("discord.js");
-const { CLIENT_ID, GUILD_ID, TOKEN } = require("../config.json");
-const fs = require("node:fs");
-const path = require("node:path");
+const { CLIENT_ID, TOKEN } = require("../config.json");
+
+const rest = new REST().setToken(TOKEN);
 
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
@@ -28,39 +28,43 @@ for (const folder of commandFolders) {
   }
 }
 
-// Construct and prepare an instance of the REST module
-const rest = new REST().setToken(TOKEN);
-
-// and deploy your commands!
-(async () => {
+async function registerCommandsOnGuild(guildId) {
   try {
-    console.log(
-      `Started refreshing ${commands.length} application (/) commands.`
+    const data = await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, guildId),
+      { body: commands }
     );
 
-    // The put method is used to fully refresh all commands in the guild with the current set
-    const data = await rest.put( // GARY FARMING
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
-    );
-    await rest.put( // server_test
-      Routes.applicationGuildCommands(CLIENT_ID, "883720564970250290"),
-      { body: commands }
-    );
-    await rest.put( // babtoszownicy
-      Routes.applicationGuildCommands(CLIENT_ID, "852991784996175902"),
-      { body: commands }
-    );
-    // await rest.put( // global
-    //   Routes.applicationCommands(CLIENT_ID),
-    //   { body: commands }
-    // );
-
-    console.log(
-      `Successfully reloaded ${data.length} application (/) commands.`
-    );
+    console.log(`Successfully registered ${data.length} commands on guild ${guildId}.`);
   } catch (error) {
-    // And of course, make sure you catch and log any errors!
-    console.error(error);
+    console.error(`Error registering commands on guild ${guildId}:`, error);
   }
-})();
+}
+
+async function registerCommandsOnAllGuilds(client) {
+  try {
+    // Pobierz wszystkie serwery z cache klienta
+    const guilds = client.guilds.cache.array();
+
+    // Rejestruj komendy na każdym serwerze
+    for (const guild of guilds) {
+      await registerCommandsOnGuild(guild.id);
+    }
+  } catch (error) {
+    console.error("Error registering commands on all guilds:", error);
+  }
+}
+
+// Wywołaj funkcję, aby zarejestrować komendy na wszystkich serwerach przy uruchomieniu
+registerCommandsOnAllGuilds(Client); // Podmień 'yourClientInstance' na odpowiednią nazwę zmiennej przechowującą klienta Discord.js
+
+// Obsługuj dołączanie do nowej gildii
+// (Możesz dodatkowo dostosować to zdarzenie do swoich potrzeb)
+yourClientInstance.on("guildCreate", async (guild) => {
+  console.log(`Joined a new guild: ${guild.name} (${guild.id})`);
+
+  // Rejestruj komendy na nowo dołączonym serwerze
+  await registerCommandsOnGuild(guild.id);
+});
+
+// ... (Dodatkowy kod do obsługi innych zdarzeń i funkcji bota)
