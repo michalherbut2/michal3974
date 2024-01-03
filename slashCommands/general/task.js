@@ -1,3 +1,4 @@
+const { parse, isValid } = require("date-fns");
 const betterSqlite3 = require("better-sqlite3");
 const { SlashCommandBuilder } = require("discord.js");
 const {
@@ -18,7 +19,7 @@ module.exports = {
         .addStringOption(option =>
           option
             .setName("data")
-            .setDescription("rok-miesiąc-dzień np. 2023-12-24")
+            .setDescription("rok-miesiąc-dzień np. 2023-12-24 lub inne obsługiwane")
             .setRequired(true)
         )
         .addStringOption(option =>
@@ -107,32 +108,74 @@ module.exports = {
 
 // setInterval(updateTasks, 15 * 60 * 1000);
 
+
+
 async function addTask(interaction, db) {
-  const date = interaction.options.getString("data");
+  const dateInput = interaction.options.getString("data");
   const content = interaction.options.getString("tresc");
   const additionalInfo = interaction.options.getString("info");
 
-  if (!date || !content || !additionalInfo)
+  if (!dateInput || !content || !additionalInfo)
     throw new Error(
-      "Użycie: !addtask <data wykonania> <treść zadania> <dodatkowe informacje>"
+      "Użycie: /task dodaj <data wykonania> <treść zadania> <dodatkowe informacje>"
     );
 
   try {
+    const parsedDate = parseDate(dateInput);
+
     await db
       .prepare(
         "INSERT INTO task (user_id, date, content, additional_info) VALUES (?, ?, ?, ?)"
       )
-      .run(interaction.user.id, date, content, additionalInfo);
+      .run(interaction.user.id, parsedDate.toISOString(), content, additionalInfo);
 
-    // interaction.reply({
-    //   embeds: [createSimpleEmbed(`Zadanie zostało dodane pomyślnie!`)],
-    // });
     replySimpleEmbed(interaction, `Zadanie zostało dodane pomyślnie!`);
-    await setReminders(interaction, date, content);
+    await setReminders(interaction, parsedDate, content);
   } catch (dbError) {
     console.error("Błąd bazy danych przy dodawaniu zadania: " + dbError);
     throw new Error(dbError.message);
+  } catch (dateError) {
+    console.error("Błąd podczas parsowania daty: " + dateError);
+    throw new Error(dateError.message);
   }
+}
+
+function parseDate(dateString) {
+  // Zdefiniuj tablicę możliwych formatów daty
+  const dateFormats = [
+    "dd.MM.yyyy",
+    "dd-MM-yyyy",
+    "d-M-yyyy",
+    "d-M-yy",
+    "dd-MM-yy",
+    "yyyy-MM-dd",
+    "MM/dd/yyyy",
+    "MM-dd-yyyy",
+    "M-d-yyyy",
+    "M-d-yy",
+    "MM-dd-yy",
+    "yy-MM-dd",
+    "yyyy/MM/dd",
+    "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", // Rozszerzony format ISO 8601
+  ];
+
+  // Spróbuj sparsować datę dla każdego formatu, aż jeden sukcesywnie się powiedzie
+  for (const format of dateFormats) {
+    try {
+      const parsedDate = parse(dateString, format, new Date());
+      
+      // Sprawdź, czy sparsowana data jest ważna
+      if (isValid(parsedDate)) {
+        // Zwróć pierwszą poprawnie sparsowaną i ważną datę
+        return parsedDate;
+      }
+    } catch (error) {
+      // Kontynuuj do następnego formatu, jeśli parsowanie nie powiedzie się
+    }
+  }
+
+  // Jeśli żaden z formatów nie powiedzie się, zgłoś błąd
+  throw new Error("Nieprawidłowy format daty. Dostępne formaty to: dd.MM.yyyy, dd-MM-yyyy, d-M-yyyy, d-M-yy, dd-MM-yy, yyyy-MM-dd, MM/dd/yyyy, MM-dd-yyyy, M-d-yyyy, M-d-yy, MM-dd-yy, yy-MM-dd, yyyy/MM/dd, yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 }
 
 async function listTasks(interaction, db) {
