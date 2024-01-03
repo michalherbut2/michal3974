@@ -1,7 +1,7 @@
 {
-  "name": "discord.js-bot-template",
-  "version": "1.0.0",
-  "description": "basic bot template with command handler",
+  "name": "michal3974",
+  "version": "2.2",
+  "description": "POLSKI bot discord",
   "main": "index.js",
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
