@@ -1,3 +1,5 @@
+const { MessageEmbed } = require("discord.js");
+const { utcToZonedTime, subDays, subHours, format } = require("date-fns-tz");
 const { parse, isValid } = require("date-fns");
 const betterSqlite3 = require("better-sqlite3");
 const { SlashCommandBuilder } = require("discord.js");
@@ -19,7 +21,7 @@ module.exports = {
         .addStringOption(option =>
           option
             .setName("data")
-            .setDescription("rok-miesiąc-dzień np. 2023-12-24 lub inne obsługiwane")
+            .setDescription("rok-miesiąc-dzień np. 2024-01-12 lub inne obsługiwane")
             .setRequired(true)
         )
         .addStringOption(option =>
@@ -66,6 +68,17 @@ module.exports = {
       subcommand
         .setName("czysc")
         .setDescription("Usuń wszystkie zadania na serwerze")
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName("powiadomienie")
+        .setDescription("Subskrybuj powiadomienia o zadaniu")
+        .addStringOption(option =>
+          option
+            .setName("id")
+            .setDescription("ID zadania")
+            .setRequired(true)
+        )
     ),
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
@@ -96,19 +109,41 @@ module.exports = {
         case "czysc":
           await clearTasks(interaction, db);
           break;
+        case "powiadomienie":
+          await subscribeNotifications(interaction, db);
+          break;
       }
     } catch (error) {
       console.error(error);
-      // interaction.reply("Wystąpił problem! " + error.message);
       replyWarningEmbed(interaction, error.message);
+    } finally {
+      db.close();
     }
-    db.close();
   },
 };
 
 // setInterval(updateTasks, 15 * 60 * 1000);
 
+async function subscribeNotifications(interaction, db) {
+  const taskId = interaction.options.getString("id");
 
+  if (!taskId) throw new Error("Użycie: /task powiadomienie <ID zadania>");
+
+  try {
+    // Sprawdź, czy istnieje zadanie o podanym ID
+    const task = await db.prepare("SELECT * FROM task WHERE id = ?").get(taskId);
+
+    if (!task) throw new Error("Nie znaleziono zadania o podanym ID na serwerze.");
+
+    // Zapisz subskrypcję powiadomień w bazie danych (np. ID użytkownika i ID zadania)
+    await db.prepare("INSERT INTO notifications (user_id, task_id) VALUES (?, ?)").run(interaction.user.id, taskId);
+
+    replySimpleEmbed(interaction, `Subskrypcja powiadomień dla zadania o ID ${taskId} została dodana pomyślnie!`);
+  } catch (dbError) {
+    console.error("Błąd bazy danych przy subskrybowaniu powiadomień: " + dbError);
+    throw new Error(dbError.message);
+  }
+}
 
 async function addTask(interaction, db) {
   const dateInput = interaction.options.getString("data");
@@ -314,57 +349,88 @@ async function updateTasks(interaction, db) {
       const taskDate = new Date(row.date);
       const currentTime = new Date();
 
+async function updateTasks(interaction, db) {
+  try {
+    const rows = await db.prepare("SELECT * FROM task").all();
+
+    for (const row of rows) {
+      const taskDate = new Date(row.date);
+      const currentTime = new Date();
+
       if (taskDate.getTime() <= currentTime.getTime() + 15 * 60 * 1000) {
         const user = await interaction.client.users.fetch(row.user_id);
-        user.send(
-          `Przypomnienie: Masz zadanie "${row.content}" do wykonania w ciągu 15 minut! Dodatkowe informacje: ${row.additional_info}`
-        );
-        // interaction.reply('Zadania zaktualizowane!');
+
+        const reminderEmbed = new MessageEmbed()
+          .setColor("#0099ff")
+          .setTitle("Przypomnienie o zadaniu")
+          .setDescription(`Masz zadanie "${row.content}" do wykonania w ciągu 15 minut!`)
+          .addField("Dodatkowe informacje", row.additional_info);
+
+        user.send({ embeds: [reminderEmbed] });
       }
     }
-    // interaction.reply("Zadania zaktualizowane!");
-    replySimpleEmbed(interaction, "Zadania zaktualizowane!")
+
+    replySimpleEmbed(interaction, "Zadania zaktualizowane!");
   } catch (dbError) {
     console.error("Błąd bazy danych przy aktualizacji zadań: " + dbError);
-    // interaction.reply(
-    //   "Błąd bazy danych przy aktualizacji zadań: " + dbError.message
-    // );
-    throw new Error("Błąd bazy danych przy aktualizacji zadań: " + dbError)
+    throw new Error("Błąd bazy danych przy aktualizacji zadań: " + dbError);
   }
 }
 
-async function setReminders(interaction, date, content) {
-  const serverId = interaction.guild.id;
-  const userId = interaction.user.id;
-  const client = interaction.client;
-  try {
-    const taskDate = new Date(date);
-    const oneDayBefore = new Date(taskDate.getTime() - 24 * 60 * 60 * 1000);
-    const oneHourBefore = new Date(taskDate.getTime() - 60 * 60 * 1000);
+  async setReminders(interaction, date, content, additionalInfo) {
+    const serverId = interaction.guild.id;
+    const userId = interaction.user.id;
+    const client = interaction.client;
+    const timeZone = "Europe/Warsaw"; // Polska strefa czasowa
 
-    await setTimeout(() => {
-      client.guilds.fetch(serverId).then(guild => {
-        guild.members.fetch(userId).then(user => {
-          user.send(
-            `Przypomnienie: Masz zadanie "${content}" do wykonania za 24 godziny!`
-          );
-        });
-      });
-    }, oneDayBefore.getTime() - Date.now());
+    try {
+      const taskDate = new Date(date);
+      const twoDaysBefore = subDays(taskDate, 2);
+      const tenHoursBefore = subHours(taskDate, 10);
 
-    await setTimeout(() => {
-      client.guilds.fetch(serverId).then(guild => {
-        guild.members.fetch(userId).then(user => {
-          user.send(
-            `Przypomnienie: Masz zadanie "${content}" do wykonania za 1 godzinę!`
-          );
-        });
-      });
-    }, oneHourBefore.getTime() - Date.now());
-  } catch (error) {
-    console.error("Błąd podczas ustawiania przypomnień:", error.message);
+      // Konwersja taskDate do strefy czasowej Polski
+      const dailyReminderTime = utcToZonedTime(taskDate, timeZone);
+      
+      // 2 dni wcześniej
+      await setTimeout(() => sendReminder(userId, content, additionalInfo, twoDaysBefore), twoDaysBefore.getTime() - Date.now());
+
+      // 10 godzin wcześniej
+      await setTimeout(() => sendReminder(userId, content, additionalInfo, tenHoursBefore), tenHoursBefore.getTime() - Date.now());
+
+      // Codzienne przypomnienie o 6 rano
+      const dailyInterval = 24 * 60 * 60 * 1000; // 24 godziny
+      const initialDelay = dailyReminderTime.getTime() - Date.now();
+
+      if (initialDelay >= 0) {
+        await setTimeout(() => {
+          sendReminder(userId, content, additionalInfo, dailyReminderTime);
+          setInterval(() => sendReminder(userId, content, additionalInfo, dailyReminderTime), dailyInterval);
+        }, initialDelay);
+      }
+
+    } catch (error) {
+      console.error("Błąd podczas ustawiania przypomnień:", error.message);
+    }
+  },
+
+ async function sendReminder(userId, content, additionalInfo, reminderTime) {
+  const user = interaction.client.users.cache.get(userId);
+
+  if (user) {
+    const formattedReminderTime = format(reminderTime, "dd.MM.yyyy HH:mm", { timeZone: "Europe/Warsaw" });
+
+    const reminderEmbed = new MessageEmbed()
+      .setColor("#0099ff")
+      .setTitle("Przypomnienie o zadaniu")
+      .setDescription(`Masz zadanie do wykonania o nazwie **${content}** za **${formattedReminderTime}**.`)
+      .addField("Szczegóły zadania", additionalInfo);
+
+    user.send({ embeds: [reminderEmbed] })
+      .catch(error => console.error("Błąd podczas wysyłania wiadomości prywatnej:", error));
   }
 }
+
+
 
 async function clearTasks(interaction, db) {
   try {
