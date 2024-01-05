@@ -5,6 +5,9 @@ const resetUserInactivity = require("./computings/resetUserInactivity");
 const loadSlashCommands = require("./computings/loadSlashCommands");
 const reactOnRectutation = require("./computings/reactOnRectutation");
 const checkLinks = require("./computings/checkLinks");
+// Check if there are existing connections and destroy them
+const existingConnections = Client._allClients.filter(client => client.token === TOKEN);
+existingConnections.forEach(client => client.destroy());
 
 const client = new Client({
   intents: [
