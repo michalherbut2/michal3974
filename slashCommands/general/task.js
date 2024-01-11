@@ -116,6 +116,13 @@ async function addTask(interaction, db) {
     throw new Error(
       "Użycie: !addtask <data wykonania> <treść zadania> <dodatkowe informacje>"
     );
+  
+  const dateFormat= /^(0?[1-9]|[12][0-9]|3[01])[.,-/\\ ](0?[1-9]|1[012])[.,-/\\ ]20[2-9]\d$/;
+  
+  if (!dateFormat.test(date))
+    throw new Error(
+      "Zła data: poprawny format daty: 01.01.2024"
+    );
 
   try {
     await db
@@ -336,7 +343,7 @@ async function clearTasks(interaction, db) {
 }
 
 function formatDate(dateString) {
-  dateString=dateString.split(/[.,-/ ]+/).reverse().join('-')
+  dateString=dateString.split(/[\.,-/ ]/).reverse().join('-')
   const options = {
     year: "numeric",
     month: "long",
@@ -346,5 +353,6 @@ function formatDate(dateString) {
     // second: "numeric",
     // timeZoneName: "short",
   };
+  console.log(dateString);
   return `<t:${new Date(dateString).getTime() / 1000}:D>`;
 }

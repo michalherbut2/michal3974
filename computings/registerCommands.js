@@ -51,7 +51,7 @@ const rest = new REST().setToken(TOKEN);
     //   Routes.applicationGuildCommands(CLIENT_ID, "852991784996175902"),
     //   { body: commands }
     // );
-    await rest.put( // global
+    const data = await rest.put( // global
       Routes.applicationCommands(CLIENT_ID),
       { body: commands }
     );
