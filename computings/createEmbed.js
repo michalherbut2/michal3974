@@ -47,18 +47,18 @@ const createWarningEmbed = description =>
 const createSuccessEmbed = description =>
   new EmbedBuilder().setColor(0x3ba55c).setDescription(description);
 
-const replyEmbed = (interaction, title, description) =>
-  interaction.reply({
+const replyEmbed = async (interaction, title, description) =>
+  await interaction.reply({
     embeds: [createEmbed(title, description)],
   });
 
-const replySimpleEmbed = (interaction, description) =>
-  interaction.reply({
+const replySimpleEmbed = async (interaction, description) =>
+  await interaction.reply({
     embeds: [createSimpleEmbed(description)],
   });
 
-const replyWarningEmbed = (interaction, description) =>
-  interaction.reply({
+const replyWarningEmbed = async (interaction, description) =>
+  await interaction.reply({
     embeds: [createWarningEmbed(description)],
   });
 

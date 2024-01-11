@@ -18,7 +18,7 @@ module.exports = {
         .addStringOption(option =>
           option
             .setName("data")
-            .setDescription("rok-miesiąc-dzień np. 2023-12-24")
+            .setDescription("dzień.miesiąc.rok np. 11.01.2024")
             .setRequired(true)
         )
         .addStringOption(option =>
@@ -336,6 +336,7 @@ async function clearTasks(interaction, db) {
 }
 
 function formatDate(dateString) {
+  dateString=dateString.split(/[.,-/ ]+/).reverse().join('-')
   const options = {
     year: "numeric",
     month: "long",
@@ -345,11 +346,5 @@ function formatDate(dateString) {
     // second: "numeric",
     // timeZoneName: "short",
   };
-  console.log(dateString);
-  const formattedDate = new Date(dateString).toLocaleDateString(
-    "pl-PL",
-    options
-  );
   return `<t:${new Date(dateString).getTime() / 1000}:D>`;
-  return formattedDate;
 }
