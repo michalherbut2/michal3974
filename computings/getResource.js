@@ -1,7 +1,7 @@
 const { createAudioResource } = require("@discordjs/voice");
 const play = require("play-dl");
 
-module.exports = async (song) => {
+module.exports = async song => {
   let service = '';
   if (song.includes('spotify.com') || song.includes('open.spotify.com')) {
     if (song.includes('/track/')) {
@@ -43,7 +43,7 @@ module.exports = async (song) => {
 
     if (service === 'spotify_playlist') {
       // Handle Spotify playlist case
-      const playlistTracks = await play.playlistInfo(searchResult[0].id, { limit: 50 }); // Change limit as needed
+      const playlistTracks = await play.playlistInfo(searchResult[0].id, { limit: 100 }); // Change limit as needed
 
       if (!playlistTracks || playlistTracks.length === 0) {
         throw new Error('Brak informacji o utworach w playliście.');
