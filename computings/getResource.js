@@ -21,6 +21,8 @@ module.exports = async song => {
     } else if (song.includes('/channel') || song.includes('/user')) {
       service = 'youtube_channel';
     }
+  } else if (song.includes('soundcloud.com')) {
+    service = 'soundcloud';
   } else {
     // If the song does not include a URL, assume it's a title
     service = 'title';
@@ -32,6 +34,7 @@ module.exports = async song => {
       source: {
         youtube: service.includes('youtube') ? 'video' : 'auto',
         spotify: service.includes('spotify') ? service.split('_')[1] : 'auto',
+        soundcloud: service.includes('soundcloud') ? 'track' : 'auto',
       },
     });
 
