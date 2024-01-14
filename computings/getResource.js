@@ -41,8 +41,8 @@ module.exports = async song => {
   const { url, title, durationRaw } = searchResult[0];
 
   const streamResult = await play.stream(url, {
-    quality: 'highestaudio'
-  });
+  quality: 320 // Ustaw jakość na 320 kbps
+});
 
   if (!streamResult) {
     throw new Error('Nie można odtworzyć utworu.');
