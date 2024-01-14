@@ -27,9 +27,12 @@ module.exports = async song => {
   }
 
   const searchResult = await play.search(song.split('?')[0], {
-    limit: 1,
-    source: { youtube: service.includes('youtube') ? 'video' : 'auto', spotify: service.includes('spotify') ? service.split('_')[1] : 'auto' }
-  });
+  limit: 1,
+  source: { 
+    youtube: service.includes('youtube') ? 'video' : 'video', 
+    spotify: service.includes('spotify') ? service.split('_')[1] : (song.includes('playlist') ? 'playlist' : 'track') 
+  }
+});
 
   if (!searchResult || searchResult.length === 0) {
     throw new Error('Nie znaleziono utworu.');
