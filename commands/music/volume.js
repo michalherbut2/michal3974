@@ -39,3 +39,4 @@ module.exports = {
     return bot.say.successMessage(interaction, `Ustawiono głośność na ${volumeLevel}%.`);
   }
 };
+//tak
