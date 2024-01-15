@@ -1,43 +1,27 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-  name: "bassboost",
-  description: "Ustaw bassboost",
-  category: "filters",
-  usage: "<level>",
-  options: [{
-    name: "poziom",
-    description: "Wybierz moc bass",
-    type: "STRING",
-    required: true,
-    choices: [
-      {
-        name: "Niski",
-        value: "low"
-      },
-      {
-        name: "Średni",
-        value: "medium"
-      },
-      {
-        name: "Wysoki",
-        value: "high"
-      },
-      {
-        name: "Bomba",
-        value: "earrape"
-      },
-      {
-        name: "OFF",
-        value: "off"
-      }
-    ]
-  }],
-  async execute(bot, interaction) {
-    const level = await interaction.options.getString("level", true);
+  data: new SlashCommandBuilder()
+    .setName('bassboost')
+    .setDescription('Ustaw bassboost')
+    .addStringOption(option => 
+      option.setName('poziom')
+        .setDescription('Wybierz moc bass')
+        .setRequired(true)
+        .addChoice('Niski', 'low')
+        .addChoice('Średni', 'medium')
+        .addChoice('Wysoki', 'high')
+        .addChoice('Bomba', 'earrape')
+        .addChoice('OFF', 'off')
+    ),
+  async execute(interaction) {
+    const bot = interaction.client;
+    const level = interaction.options.getString('poziom');
 
     const queue = bot.player.getQueue(interaction.guild.id);
 
     if (!queue || !queue.playing)
-      return bot.say.errorMessage(interaction, "I’m currently not playing in this guild.");
+      return bot.say.errorMessage(interaction, "Aktualnie nie odtwarzam muzyki na tym serwerze.");
 
     if (!bot.utils.modifyQueue(interaction)) return;
 
