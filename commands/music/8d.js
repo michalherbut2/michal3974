@@ -1,8 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-  name: "8d",
-  description: "Użyj 8d",
-  category: "filters",
-  async execute(bot, interaction) {
+  data: new SlashCommandBuilder()
+    .setName('8d')
+    .setDescription('Użyj 8d'),
+  async execute(interaction) {
+    const bot = interaction.client;
     const queue = bot.player.getQueue(interaction.guild.id);
 
     if (!queue || !queue.playing)
