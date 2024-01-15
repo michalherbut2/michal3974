@@ -1,23 +1,23 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { Lyrics } = require("@discord-player/extractor");
 const lyricsClient = Lyrics.init();
 
 module.exports = {
-  name: "tekst",
-  description: "Pobierz tekst piosenki.",
-  usage: "[nazwaPiosenki]",
-  category: "muzyka",
-  options: [{
-    type: "STRING",
-    name: "zapytanie",
-    description: "Tytuł piosenki do wyszukania tekstu",
-    required: false
-  }],
-  async execute(bot, interaction) {
+  data: new SlashCommandBuilder()
+    .setName('tekst')
+    .setDescription('Pobierz tekst piosenki.')
+    .addStringOption(option => 
+      option.setName('zapytanie')
+        .setDescription('Tytuł piosenki do wyszukania tekstu')
+        .setRequired(false)
+    ),
+  async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
+    const bot = interaction.client;
     const queue = bot.player.getQueue(interaction.guild.id);
 
-    const zapytanie = interaction.options.getString("zapytanie", false) ?? queue?.current?.title;
+    const zapytanie = interaction.options.getString('zapytanie') ?? queue?.current?.title;
 
     if (!zapytanie)
       return bot.say.errorMessage(interaction, "Zapomniałeś podać tytułu piosenki.");
