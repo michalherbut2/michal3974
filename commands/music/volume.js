@@ -1,31 +1,26 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-  data: {
-    name: "volume",
-    description: "Ustaw głośność",
-    type: "CHAT_INPUT",
-    options: [
-      {
-        name: "poziom",
-        description: "Wybierz poziom głośności",
-        type: "INTEGER",
-        required: true,
-        choices: [
-          { name: "0%", value: 0 },
-          { name: "25%", value: 25 },
-          { name: "50%", value: 50 },
-          { name: "75%", value: 75 },
-          { name: "100%", value: 100 },
-          { name: "125%", value: 125 },
-          { name: "150%", value: 150 },
-          { name: "175%", value: 175 },
-          { name: "200%", value: 200 }
-        ],
-      },
-    ],
-  },
+  data: new SlashCommandBuilder()
+    .setName('volume')
+    .setDescription('Ustaw głośność')
+    .addIntegerOption(option => 
+      option.setName('poziom')
+        .setDescription('Wybierz poziom głośności')
+        .setRequired(true)
+        .addChoice('0%', 0)
+        .addChoice('25%', 25)
+        .addChoice('50%', 50)
+        .addChoice('75%', 75)
+        .addChoice('100%', 100)
+        .addChoice('125%', 125)
+        .addChoice('150%', 150)
+        .addChoice('175%', 175)
+        .addChoice('200%', 200)
+    ),
   async execute(interaction) {
     const bot = interaction.client;
-    const volumeLevel = await interaction.options.getInteger("poziom", true);
+    const volumeLevel = interaction.options.getInteger('poziom');
 
     const queue = bot.player.getQueue(interaction.guild.id);
 
@@ -39,4 +34,3 @@ module.exports = {
     return bot.say.successMessage(interaction, `Ustawiono głośność na ${volumeLevel}%.`);
   }
 };
-//tak
