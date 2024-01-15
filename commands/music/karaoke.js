@@ -1,8 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-  name: "karaoke",
-  description: "Toggles the karaoke filter.",
-  category: "filters",
-  async execute(bot, interaction) {
+  data: new SlashCommandBuilder()
+    .setName('karaoke')
+    .setDescription('Toggles the karaoke filter'),
+  async execute(interaction) {
+    const bot = interaction.client;
     const queue = bot.player.getQueue(interaction.guild.id);
 
     if (!queue || !queue.playing)
@@ -11,7 +14,7 @@ module.exports = {
     if (!bot.utils.modifyQueue(interaction)) return;
 
     await queue.setFilters({
-      kakaoke: !queue.getFiltersEnabled().includes("karaoke")
+      karaoke: !queue.getFiltersEnabled().includes("karaoke")
     });
 
     return bot.say.successMessage(interaction, `${queue.getFiltersEnabled().includes("karaoke") ? "Zastosowano" : "Usunięto"} karaoke filter.`);
