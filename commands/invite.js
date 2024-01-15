@@ -1,10 +1,9 @@
-const { MessageActionRow, MessageButton } = require("discord.js");
+const { SlashCommandBuilder, MessageActionRow, MessageButton } = require('@discordjs/builders');
 
 module.exports = {
-  data: {
-    name: "invite",
-    description: "Invite the bot to your server",
-  },
+  data: new SlashCommandBuilder()
+    .setName('invite')
+    .setDescription('Invite the bot to your server'),
   async execute(interaction) {
     const bot = interaction.client;
     const embed = bot.say.baseEmbed(interaction)
