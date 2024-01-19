@@ -91,6 +91,8 @@ async function addWarn(interaction, userId, db) {
     rola_za_1_ostrzerzenie: warnRole1,
     rola_za_2_ostrzerzenie: warnRole2,
     rola_za_3_ostrzerzenie: warnRole3,
+    rola_zakaz_pisania: writingBanRole,
+    rola_zakaz_gadania: speakingBanRole,
   } = config;
   let warnNum = await getWarns(userId, db);
 
@@ -108,21 +110,29 @@ async function addWarn(interaction, userId, db) {
   if (warnRole1) {
     if (warnNum == 1) {
       await addRole(interaction, userId, warnRole1);
+      await addRole(interaction, userId, writingBanRole);
       content += `W nagrodę <@${userId}> przez dzień nie możesz pisać!`;
       setTimeout(() => {
-        removeRole(interaction, userId, warnRole1);
+        removeRole(interaction, userId, writingBanRole);
       }, 1000 * 60 * 60 * 24); // dzień
     } else if (warnNum == 2) {
       await addRole(interaction, userId, warnRole2);
+      await addRole(interaction, userId, writingBanRole);
+      await addRole(interaction, userId, speakingBanRole);
+
       content += `W nagrodę <@${userId}> przez 3 dni nie możesz pisać i gadać!`;
       setTimeout(() => {
-        removeRole(interaction, userId, warnRole2);
+        removeRole(interaction, userId, writingBanRole);
+        removeRole(interaction, userId, speakingBanRole);
       }, 1000 * 60 * 60 * 24 * 3);
     } else if (warnNum == 3) {
       await addRole(interaction, userId, warnRole3);
+      await addRole(interaction, userId, writingBanRole);
+      await addRole(interaction, userId, speakingBanRole);
       content += `W nagrodę <@${userId}> przez tydzień nie możesz pisać i gadać!`;
       setTimeout(() => {
-        removeRole(interaction, userId, warnRole3);
+        removeRole(interaction, userId, writingBanRole);
+        removeRole(interaction, userId, speakingBanRole);
       }, 1000 * 60 * 60 * 24 * 7);
     } else
       content += `W nagrodę za Twoje zasługi <@${userId}> otrzymujesz banicję`;

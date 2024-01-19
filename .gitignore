@@ -24,6 +24,7 @@ computings_old
 commands_old
 .vscode
 syf
+config2.json
 
 npm-debug.log*
 yarn-debug.log*
