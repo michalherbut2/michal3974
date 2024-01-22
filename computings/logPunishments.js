@@ -8,7 +8,7 @@ module.exports = async (auditLog, guild, client) => {
   // Define your variables.
   const { action, executorId, targetId, changes, reason } = auditLog;
   // Check only for kicked users.
-  if (changes[0].key !== 'communication_disabled_until') return;
+  if (changes[0]?.key !== 'communication_disabled_until') return;
 
   let message = 'nic'
 
