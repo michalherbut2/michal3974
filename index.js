@@ -1,4 +1,4 @@
-const { TOKEN } = require("./config2.json");
+const { TOKEN } = require("./config.json");
 const { Client, GatewayIntentBits, Collection, Partials} = require("discord.js");
 const fs = require("fs");
 const loadSlashCommands = require("./computings/loadSlashCommands");
