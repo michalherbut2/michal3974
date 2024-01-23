@@ -35,7 +35,7 @@ module.exports = newState => {
   if (moderatorChannel) {
     // Send a message to the text channel
     const userId = member.id;
-    moderatorChannel.send(`### <@${userId}> wszedł na <#${verificationChannelId}> <t:${parseInt(Date().time/1000)}:R>! <@&${moderatorRoleId}> idź go zweryfikować!`);
+    moderatorChannel.send(`### <@${userId}> wszedł na <#${verificationChannelId}> <t:${parseInt(new Date().getTime/1000)}:R>! <@&${moderatorRoleId}> idź go zweryfikować!`);
     // console.log(
     //   `### ${userId} wszedł na <#${verificationChannelId}>! <@&{moderatorRoleId}> idź go zweryfikować!`
     // );
