@@ -1,3 +1,5 @@
+const { PermissionsBitField } = require("discord.js");
+
 let isCooldown = false;
 const verificationChannelId = "1198762609571278908";
 const moderatorChannelId = "1198719827020370001";
@@ -14,13 +16,14 @@ module.exports = newState => {
 
   const member = newState.member;
   // Skip the verification for users with the moderator role
-  if (member && member.roles.cache.has(moderatorRoleId)) return;
+  if (member && member.permissions.has(PermissionsBitField.Flags.BanMembers))
+    return;
 
   // Check if there is already a moderator in the verification channel
   if (
     verificationChannel &&
-    verificationChannel.members.some((member) =>
-      member.roles.cache.has(moderatorRoleId)
+    verificationChannel.members.some(member =>
+      member.permissions.has(PermissionsBitField.Flags.BanMembers)
     )
   )
     return;
@@ -29,13 +32,18 @@ module.exports = newState => {
   setTimeout(() => (isCooldown = false), cooldownTime);
 
   // Get the text channel where you want to send the message
-  const moderatorChannel = newState.guild.channels.cache.get(moderatorChannelId);
+  const moderatorChannel =
+    newState.guild.channels.cache.get(moderatorChannelId);
 
   // Check if the text channel exists
   if (moderatorChannel) {
     // Send a message to the text channel
     const userId = member.id;
-    moderatorChannel.send(`### <@${userId}> wszedł na <#${verificationChannelId}> <t:${parseInt(new Date().getTime()/1000)}:R>! <@&${moderatorRoleId}> idź go zweryfikować!`);
+    moderatorChannel.send(
+      `### <@${userId}> wszedł na <#${verificationChannelId}> <t:${parseInt(
+        new Date().getTime() / 1000
+      )}:R>! <@&${moderatorRoleId}> idź go zweryfikować!`
+    );
     // console.log(
     //   `### ${userId} wszedł na <#${verificationChannelId}>! <@&{moderatorRoleId}> idź go zweryfikować!`
     // );
