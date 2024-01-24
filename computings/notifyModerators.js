@@ -2,8 +2,9 @@ const { PermissionsBitField } = require("discord.js");
 
 let isCooldown = false;
 const verificationChannelId = "1198762609571278908";
-const moderatorChannelId = "1198719827020370001";
+const adminChannelId = "1047156981686874172";
 const moderatorRoleId = "1049729342420287508";
+const adminRoldId = "1008287145657647105";
 const cooldownTime = 60_000; // Cooldown time in milliseconds
 
 module.exports = newState => {
@@ -14,16 +15,17 @@ module.exports = newState => {
     verificationChannelId
   );
 
-  const member = newState.member;
+  // const member = newState.member;
   // Skip the verification for users with the moderator role
-  if (member && member.permissions.has(PermissionsBitField.Flags.BanMembers))
-    return;
+  // if (member && member.permissions.has(PermissionsBitField.Flags.BanMembers))
+  //   return;
 
   // Check if there is already a moderator in the verification channel
   if (
     verificationChannel &&
     verificationChannel.members.some(member =>
-      member.permissions.has(PermissionsBitField.Flags.BanMembers)
+      // member.permissions.has(PermissionsBitField.Flags.BanMembers)
+      !member.roles.cache.has('1198761685998108753')
     )
   )
     return;
@@ -32,17 +34,17 @@ module.exports = newState => {
   setTimeout(() => (isCooldown = false), cooldownTime);
 
   // Get the text channel where you want to send the message
-  const moderatorChannel =
-    newState.guild.channels.cache.get(moderatorChannelId);
+  const adminChannel =
+    newState.guild.channels.cache.get(adminChannelId);
 
   // Check if the text channel exists
-  if (moderatorChannel) {
+  if (adminChannel) {
     // Send a message to the text channel
-    const userId = member.id;
-    moderatorChannel.send(
+    const userId = newState.member.id;
+    adminChannel.send(
       `### <@${userId}> wszedł na <#${verificationChannelId}> <t:${parseInt(
         new Date().getTime() / 1000
-      )}:R>! <@&${moderatorRoleId}> idź go zweryfikować!`
+      )}:R>! <@&${adminRoldId}> lub <@&${moderatorRoleId}> idź go zweryfikować!`
     );
     // console.log(
     //   `### ${userId} wszedł na <#${verificationChannelId}>! <@&{moderatorRoleId}> idź go zweryfikować!`
