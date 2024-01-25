@@ -55,12 +55,12 @@ const rest = new REST().setToken(TOKEN);
       );
     } else {
       // The put method is used to fully refresh all commands in the guild with the current set
+      // data = await rest.put(
+      //   // GARY FARMING
+      //   Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      //   { body: commands }
+      // );
       data = await rest.put(
-        // GARY FARMING
-        Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-        { body: commands }
-      );
-      await rest.put(
         // server_test
         Routes.applicationGuildCommands(CLIENT_ID, "883720564970250290"),
         { body: commands }
