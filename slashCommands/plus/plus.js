@@ -25,7 +25,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("plus")
     .setDescription("Dodaje plusy użytkownikowi")
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     // .addStringOption(plusNumField)
     // .addUserOption(userField)
     // .addStringOption(reasonField)
