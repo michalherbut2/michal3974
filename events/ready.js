@@ -2,6 +2,7 @@ const checkInactivity = require("../computings/checkInactivity");
 const createAudioPlayers = require("../computings/createAudioPlayers");
 const createDatabases = require("../computings/createDatabases");
 const loadConfig = require("../computings/loadConfig");
+const updateStats = require("../computings/update/updateStats");
 
 module.exports = {
     name: 'ready',
@@ -10,6 +11,8 @@ module.exports = {
         console.log(
             `${client.user.username} is online on ${client.guilds.cache.size} servers!`
         );
+
+        updateStats(client)
 
         // Set initial presence
         updatePresence(client);
