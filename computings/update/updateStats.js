@@ -2,9 +2,13 @@ const convertData = require("../convertData.js");
 const formatTable = require("../formatTable.js");
 const getData = require("../getServerData.js");
 
+const unverifiedRoleId = "1198761685998108753";
+const adminRoleId = "1008287145657647105";
+const statsChannel = "1200134712644083824"
+
 module.exports = async client => {
-  const updateTable = async () => {
-    const channel = await client.channels.cache.get("1200134712644083824");
+  const updateStats = async () => {
+    const channel = await client.channels.cache.get(statsChannel);
     const msg = await channel.messages.fetch("1200139100460699762");
     const data = await getData();
     const jsData = await convertData(data);
@@ -13,18 +17,20 @@ module.exports = async client => {
     const guild = msg.guild;
     const totalMembers = guild.memberCount;
 
-    const unverifiedRoleId = "1198761685998108753";
-    const unverifiedRole = guild.roles.cache.get(unverifiedRoleId);
-    const unverifiedMembers = unverifiedRole.members.size;
+    await guild.members.fetch()
+    const unverifiedRole = await guild.roles.fetch(unverifiedRoleId);
+    const unverifiedMembers = unverifiedRole?.members?.size;
 
-    const adminRoleId = "1008287145657647105";
     const adminRole = guild.roles.cache.get(adminRoleId);
     const admins = adminRole.members.size;
 
-    msg.edit(`Ludzie na dc: ${totalMembers}\n Niezweryfikowani: ${unverifiedMembers}\n Admini: ${admins}` + content);
+    msg.edit(`:busts_in_silhouette: **Ludzie na dc:** ${totalMembers}\n
+:grey_question: **Niezweryfikowani:** ${unverifiedMembers}\n
+:shield: **Admini:** ${admins}\n
+${content}`);
   };
-  await updateTable();
+  await updateStats();
   // milisecond*seconds*minutes*hours
   const time = 1000 * 60 * 5; // 5 min
-  setInterval(updateTable, time);
-}
+  setInterval(updateStats, time);
+};
