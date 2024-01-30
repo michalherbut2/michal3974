@@ -15,17 +15,11 @@ module.exports = newState => {
     verificationChannelId
   );
 
-  // const member = newState.member;
-  // Skip the verification for users with the moderator role
-  // if (member && member.permissions.has(PermissionsBitField.Flags.BanMembers))
-  //   return;
-
   // Check if there is already a moderator in the verification channel
   if (
     verificationChannel &&
     verificationChannel.members.some(member =>
-      // member.permissions.has(PermissionsBitField.Flags.BanMembers)
-      !member.roles.cache.has('1198761685998108753')
+      !member.roles.cache.has(moderatorRoleId)
     )
   )
     return;
@@ -46,9 +40,6 @@ module.exports = newState => {
         new Date().getTime() / 1000
       )}:R>! <@&${adminRoldId}> lub <@&${moderatorRoleId}> idź go zweryfikować!`
     );
-    // console.log(
-    //   `### ${userId} wszedł na <#${verificationChannelId}>! <@&{moderatorRoleId}> idź go zweryfikować!`
-    // );
   } else {
     console.error("Kanał tekstowy nie został znaleziony.");
   }
