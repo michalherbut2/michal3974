@@ -5,6 +5,7 @@ const verificationChannelId = "1198762609571278908";
 const textChannelId = "1198763617986826360";
 const moderatorRoleId = "1049729342420287508";
 const adminRoldId = "1008287145657647105";
+const slaveRoldId = "1205185517214236692";
 const cooldownTime = 60_000; // Cooldown time in milliseconds
 
 module.exports = newState => {
@@ -44,7 +45,7 @@ module.exports = newState => {
     textChannel.send(
       `### <@${userId}> wszedł na <#${verificationChannelId}> <t:${parseInt(
         new Date().getTime() / 1000
-      )}:R>! <@&${adminRoldId}> lub <@&${moderatorRoleId}> idź go zweryfikować!`
+      )}:R>! <@&${adminRoldId}>, <@&${moderatorRoleId}> lub <@&${slaveRoldId}> idź go zweryfikować!`
     );
     // console.log(
     //   `### ${userId} wszedł na <#${verificationChannelId}>! <@&{moderatorRoleId}> idź go zweryfikować!`
