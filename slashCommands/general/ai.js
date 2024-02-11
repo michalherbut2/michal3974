@@ -10,10 +10,22 @@ const db = new Database('settings.db');
 db.exec(`CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     model TEXT,
-    personality TEXT,
-    internet INTEGER,
-    temperature REAL
+    internet INTEGER
 )`);
+
+// Fetch the available options from the ShuttleAI API
+let models = [];
+axios.get('https://api.shuttleai.app/v1/models', {
+    headers: {
+        'Authorization': `Bearer ${SHUTTLE_KEY}`
+    }
+}).then(response => {
+    models = response.data;
+}).catch(error => {
+    console.error(error);
+});
+
+// Add other options here
 
 module.exports = {
     data: [
@@ -65,19 +77,16 @@ module.exports = {
             .addStringOption(option =>
                 option.setName('model')
                     .setDescription('The model to use.')
-                    .setRequired(true))
-            .addStringOption(option =>
-                option.setName('personality')
-                    .setDescription('The personality of the AI.')
+                    .addChoices(models.map(model => [model, model])) // Add the models as choices
                     .setRequired(true))
             .addBooleanOption(option =>
                 option.setName('internet')
                     .setDescription('Whether the AI should use the internet.')
+                    .addChoices([
+                        ['Yes', true],
+                        ['No', false]
+                    ])
                     .setRequired(true))
-            .addNumberOption(option =>
-                option.setName('temperature')
-                    .setDescription('The randomness of the AI\'s output.')
-                .setRequired(true))
     ],
     async execute(interaction) {
         const command = interaction.commandName;
@@ -90,11 +99,10 @@ module.exports = {
             let message = interaction.options.getString('message');
             let response = await axios.post('https://api.shuttleai.app/v1/chat/completions', {
                 model: settings.model,
-                messages: [{"role":"system","content":`You are a helpful assistant with the personality of ${settings.personality}.`},{"role":"user","content":message}],
+                messages: [{"role":"system","content":`You are a helpful assistant.`},{"role":"user","content":message}],
                 stream: false,
                 plain: false,
-                internet: settings.internet,
-                temperature: settings.temperature
+                internet: settings.internet
             }, {
                 headers: {
                     'Authorization': `Bearer ${SHUTTLE_KEY}`
@@ -160,15 +168,13 @@ module.exports = {
             await interaction.reply(response.data);
         } else if (command === 'ustawienia_ai') {
             let model = interaction.options.getString('model');
-            let personality = interaction.options.getString('personality');
             let internet = interaction.options.getBoolean('internet');
-            let temperature = interaction.options.getNumber('temperature');
 
             // Save the settings to the database
-            stmt = db.prepare('INSERT OR REPLACE INTO users (id, model, personality, internet, temperature) VALUES (?, ?, ?, ?, ?)');
-            stmt.run(interaction.user.id, model, personality, internet, temperature);
+            stmt = db.prepare('INSERT OR REPLACE INTO users (id, model, internet) VALUES (?, ?, ?)');
+            stmt.run(interaction.user.id, model, internet);
 
-            await interaction.reply(`Ustawienia AI zostały zaktualizowane. Model: ${model}, Osobowość: ${personality}, Internet: ${internet}, Temperatura: ${temperature}`);
+            await interaction.reply(`Ustawienia AI zostały zaktualizowane. Model: ${model}, Internet: ${internet}`);
         }
     },
 };
