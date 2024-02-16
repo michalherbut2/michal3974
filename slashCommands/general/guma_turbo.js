@@ -47,7 +47,7 @@ let auta = [
     'Rimac C_Two',
     'Tesla Model S Plaid',
     'Lucid Air Dream Edition',
-    'NIO EP9',
+    'Fiat126p (maluch)',
     'Pininfarina Battista',
     'Lotus Evija',
     'Aston Martin Valkyrie',
