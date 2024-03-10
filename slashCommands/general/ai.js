@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const axios = require('axios');
 const Database = require('better-sqlite3');
 
-const SHUTTLE_KEY = 'shuttle-aelrsjnamdxlf0agw2m8';
+const SHUTTLE_KEY = 'shuttle-102f4a84ef8f9cec922a';
 
 const db = new Database('settings.db');
 
