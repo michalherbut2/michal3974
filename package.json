@@ -2,7 +2,7 @@
   "name": "michal3974",
   "version": "2.2",
   "description": "POLSKI bot discord",
-  "main": "index.js",
+  "main": "shard.js",
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
     "@discordjs/voice": "^0.16.0",
