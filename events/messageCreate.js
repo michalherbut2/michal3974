@@ -21,13 +21,13 @@ module.exports = {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase();
-    let args = messageArray.slice(1);
+    // let args = messageArray.slice(1);
 
     //Check for PREFIX
-    if (!cmd.startsWith(PREFIX)) return;
+    // if (!cmd.startsWith(PREFIX)) return;
     //Get the command from the commands collection and then if the command is found run the command file
-    let commandfile = client.commands.get(cmd.slice(PREFIX.length));
-    if (commandfile) commandfile.run(client, message, args);
+    // let commandfile = client.commands.get(cmd.slice(PREFIX.length));
+    // if (commandfile) commandfile.run(client, message, args);
 
     if (cmd.includes("imie")) await reactOnRectutation(message);
     // checkLinks(message)

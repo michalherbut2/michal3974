@@ -23,33 +23,6 @@ const client = new Client({
   ]
 });
 
-client.commands = new Collection();
-
-const commandFiles = fs
-  .readdirSync("./commands/")
-  .filter(f => f.endsWith(".js"));
-
-for (const file of commandFiles) {
-  const props = require(`./commands/${file}`);
-  console.log(`${file} loaded`);
-  client.commands.set(props.config.name, props);
-}
-
-const commandSubFolders = fs
-  .readdirSync("./commands/")
-  .filter(f => !f.endsWith(".js"));
-
-commandSubFolders.forEach(folder => {
-  const commandFiles = fs
-    .readdirSync(`./commands/${folder}/`)
-    .filter(f => f.endsWith(".js"));
-  for (const file of commandFiles) {
-    const props = require(`./commands/${folder}/${file}`);
-    console.log(`${file} loaded from ${folder}`);
-    client.commands.set(props.config.name, props);
-  }
-});
-
 // Load Event files from events folder
 const eventFiles = fs.readdirSync("./events/").filter(f => f.endsWith(".js"));
 
