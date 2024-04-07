@@ -3,11 +3,17 @@ const { CLIENT_ID, GUILD_ID, TOKEN } = require("./config.json");
 const fs = require("node:fs");
 const path = require("node:path");
 
-// config
-// production
+// require("dotenv").config();
+const { glob } = require("glob");
+const { promisify } = require("util");
+const globPromise = promisify(glob);
+
+// ##### config #####
+// ### production ###
 const registerGlobal = true;
 const clearCommands = false;
-// test
+
+// ###    test    ###
 // const registerGlobal = false;
 // const clearCommands = true;
 
@@ -37,16 +43,28 @@ if (!clearCommands)
       }
     }
   }
+
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(TOKEN);
 
 // and deploy your commands!
 (async () => {
+  // contextMenus
+  const contextMenus = await globPromise(`${process.cwd()}/contextMenus/*.js`);
+  contextMenus.map(value => {
+    const file = require(value);
+
+    if (!file?.data || !file?.execute) return console.log("coś nie tak");
+    commands.push(file.data);
+  });
+
   try {
     console.log(
       `Started refreshing ${commands.length} application (/) commands.`
     );
+
     let data = [];
+
     if (registerGlobal) {
       data = await rest.put(
         // global
@@ -60,16 +78,6 @@ const rest = new REST().setToken(TOKEN);
         Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
         { body: commands }
       );
-      // data = await rest.put(
-      //   // server_test
-      //   Routes.applicationGuildCommands(CLIENT_ID, "883720564970250290"),
-      //   { body: commands }
-      // );
-      // await rest.put(
-      //   // babtoszownicy
-      //   Routes.applicationGuildCommands(CLIENT_ID, "852991784996175902"),
-      //   { body: commands }
-      // );
     }
 
     console.log(

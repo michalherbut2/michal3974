@@ -1,5 +1,3 @@
-const { SlashCommandBuilder } = require("discord.js");
-
 module.exports = {
   data: {
     name: 'stop'

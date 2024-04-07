@@ -69,6 +69,10 @@ client.slashCommands = new Collection();
 client.buttons = new Collection();
 client.config = new Collection();
 client.inactivity = new Collection();
+client.contextMenus = new Collection();
+client.invites = new Collection();
+client.modals = new Collection();
+
 loadSlashCommands(client);
 // log(client.slashCommands.get('ping'));
 // console.log([...client.slashCommands.entries()]);
