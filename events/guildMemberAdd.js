@@ -37,7 +37,7 @@ module.exports = {
 
       member.channel = channel;
 
-      const mess = `${invite.inviter} zaprosił ${member}!`;
+      const mess = `${invite.inviter} zaprosił ${member} kodem ${invite.code}!`;
 
       console.log("przywitanie");
 

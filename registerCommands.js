@@ -50,13 +50,16 @@ const rest = new REST().setToken(TOKEN);
 // and deploy your commands!
 (async () => {
   // contextMenus
-  const contextMenus = await globPromise(`${process.cwd()}/contextMenus/*.js`);
-  contextMenus.map(value => {
-    const file = require(value);
+  if (!clearCommands) {
+    const contextMenus = await globPromise(`${process.cwd()}/contextMenus/*.js`);
+    contextMenus.map(value => {
+      const file = require(value);
+    
+      if (!file?.data || !file?.execute) return console.log("coś nie tak");
+      commands.push(file.data);
+    });
+}
 
-    if (!file?.data || !file?.execute) return console.log("coś nie tak");
-    commands.push(file.data);
-  });
 
   try {
     console.log(
