@@ -28,15 +28,26 @@ module.exports = {
 
     const member = guild.members.cache.get(user.id);
 
-    // member.disableCommunicationUntil(Date.now() + 28 * 24 * 60 * 60 * 1000);
-    member.timeout(28 * 24 * 60 * 60 * 1000, reason); // 28 days
+    try {
+      // member.disableCommunicationUntil(Date.now() + 28 * 24 * 60 * 60 * 1000);
+      await member.timeout(28 * 24 * 60 * 60 * 1000, reason); // 28 days
 
-    console.log("siema");
-    await sendEmbed(interaction, {
-      description: `# ${member} naszczęsie dostał bana na 28 dni.`,
-    });
+      console.log("siema");
+      await sendEmbed(interaction, {
+        description: `# ${member} naszczęsie dostał bana na 28 dni.`,
+      });
 
-    // interaction.followUp("nara");
-    console.log("elo");
+      // interaction.followUp("nara");
+      console.log("elo");
+    } catch (error) {
+      console.error("\x1b[31m%s\x1b[0m", error);
+
+      sendEmbed(interaction, {
+        description: error.message,
+        ephemeral: true,
+        followUp: true,
+        color: "red",
+      });
+    }
   },
 };
