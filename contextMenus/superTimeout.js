@@ -18,7 +18,7 @@ module.exports = {
       await member.timeout(28 * 24 * 60 * 60 * 1000); // 28 days
      
       sendEmbed(interaction, {
-        description: `${member} dostał elegancką przerwę na 28 dni`,
+        description: `# ${member} dostał elegancką przerwę na 28 dni!`,
       });
       
     } catch (error) {
