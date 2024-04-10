@@ -34,7 +34,7 @@ module.exports = {
 
       console.log("siema");
       await sendEmbed(interaction, {
-        description: `# ${member} na szczęsie dostał bana na 28 dni!`,
+        description: `# ${member} na szczęście dostał bana na 28 dni!`,
       });
 
       // interaction.followUp("nara");
