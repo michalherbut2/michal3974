@@ -8,7 +8,7 @@ module.exports = {
   
   async execute(interaction) {
     const { client } = interaction;
-    const queue = client.queue.get(message.guild.id).queue;
+    const queue = client.queue.get(interaction.guild.id).queue;
 
     if (!queue.length)
       sendEmbed(interaction, {
