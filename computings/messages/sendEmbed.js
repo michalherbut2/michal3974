@@ -15,7 +15,7 @@ module.exports = async (
     thumbnail,
     row,
     footerText,
-    color = 0xffc300,
+    color = 0x0099ff,
     ephemeral = false,
     followUp = false,
   }
