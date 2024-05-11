@@ -110,8 +110,8 @@ async function removePlus(interaction, userId, db) {
   const plusNumToRemove = interaction.options.getInteger("liczba_plusow");
   const reason = interaction.options.getString("powod");
   const plusNum = await getPlus(userId, db);
-  const totalPlusNum = plusNum - plusNumToRemove
-    // plusNum - plusNumToRemove > 0 ? plusNum - plusNumToRemove : 0;
+  const totalPlusNum = plusNum - plusNumToRemove;
+
   await db
     .prepare(
       plusNum
@@ -120,7 +120,7 @@ async function removePlus(interaction, userId, db) {
     )
     .run(totalPlusNum, reason, userId);
 
-  const content = `<@${userId}> dostał **${plusNumToRemove}** plusy ujemne za: **${reason}**! Razem ma ${totalPlusNum} plusy.`;
+  const content = `<@${userId}> dostał **${plusNumToRemove}** plusy ujemne za: **${reason}**! Razem ma **${totalPlusNum}** plusy.`;
 
   interaction.reply({
     content: `<@${userId}>`,

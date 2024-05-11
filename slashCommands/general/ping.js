@@ -4,6 +4,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Odpowiada Pong!"),
+  
   async execute(interaction) {
     try {
       const botPing = interaction.client.ws.ping;
