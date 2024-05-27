@@ -14,7 +14,7 @@ module.exports = async (auditLog, guild, client) => {
   // create a messages
   const addTimeoutMessage = `<@${targetId}> w końcu dostał przerwę od <@${executorId}> na <t:${parseInt(
     new Date(changes[0].new).getTime() / 1000
-  )}:R> za **${reason ?? "darmo"}**.`;
+  )}:R> za **${reason.trim() ?? "darmo"}**.`;
 
   const removeTimeoutMessage = `<@${executorId}> niestety, jak zbój, pozbawił Czcigodnego <@${targetId}> jego zasłużonej przerwy.`;
 
