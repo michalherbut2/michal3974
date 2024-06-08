@@ -1,25 +1,25 @@
 const { TOKEN } = require("./config.json");
 const { Client, GatewayIntentBits, Collection, Partials} = require("discord.js");
-const fs = require("fs");
+const fs = require('fs');
 const loadSlashCommands = require("./computings/loadSlashCommands");
+const { generateNewKeys, generateSignature, verifySignature, limiter } = require("./security.js");
 
 const client = new Client({
   intents: [
-    // IntentsBitField.Flags.Guilds, // -special structure in discord.js that allows you to modify a bitfield, using functions like add() and remove()
-    GatewayIntentBits.Guilds, // .GUILDS,//
-    GatewayIntentBits.GuildMessages, // .GUILD_MESSAGES,
-    GatewayIntentBits.GuildMembers, // .GUILD_MEMBERS, // privileged intent
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildVoiceStates, // .GUILD_VOICE_STATES,
+    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.DirectMessageTyping,
     GatewayIntentBits.DirectMessageReactions,
-    GatewayIntentBits.GuildModeration, // audit log
+    GatewayIntentBits.GuildModeration,
   ],
   partials: [
     Partials.Channel,
-    Partials.Message // dm
+    Partials.Message
   ]
 });
 
@@ -47,11 +47,6 @@ client.invites = new Collection();
 client.modals = new Collection();
 
 loadSlashCommands(client);
-// log(client.slashCommands.get('ping'));
-// console.log([...client.slashCommands.entries()]);
-// for (const [key, { data }] of client.slashCommands) {
-//   console.log(`${key} goes ${data.description}`);
-// }
 
 client
   .on("warn", console.warn)
@@ -62,5 +57,11 @@ process
   .on("uncaughtException", console.error)
   .on("uncaughtExceptionMonitor", console.error)
   .on("unhandledRejection", console.error);
+
+// Generate new keys when the bot starts
+generateNewKeys();
+
+// Use the limiter middleware
+app.use(limiter);
 
 client.login(TOKEN);
