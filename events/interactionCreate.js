@@ -47,7 +47,7 @@ module.exports = {
           followUp: true,
         });
       else
-        sendEmbed(interaction, { description: err.message, ephemeral: true });
+        sendEmbed(interaction, { description: error.message, ephemeral: true });
     }
   },
 };

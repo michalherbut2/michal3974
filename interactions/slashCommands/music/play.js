@@ -16,7 +16,7 @@ module.exports = {
     ),
   async execute(interaction) {
     try {
-      // interaction.deferReply();
+      interaction.deferReply();
 
       const voiceConnection = createVoiceConnection(interaction);
 
