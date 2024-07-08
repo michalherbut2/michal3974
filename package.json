@@ -1,19 +1,18 @@
 {
   "name": "michal3974",
-  "version": "2.2",
+  "version": "2.3",
   "description": "POLSKI bot discord",
   "main": "index.js",
   "dependencies": {
     "@discordjs/voice": "^0.17.0",
     "axios": "^1.7.2",
-    "better-sqlite3": "^11.1.1",
+    "better-sqlite3": "^11.1.2",
     "discord.js": "^14.15.3",
-    "glob": "^10.4.2",
+    "glob": "^10.4.3",
     "libsodium-wrappers": "^0.7.13",
-    "play-dl": "^1.9.7",
     "xml2js": "^0.6.2",
-    "ytdl-core": "^4.11.5",
-    "ytsr": "^3.8.4"
+    "yt-search": "^2.11.1",
+    "ytdl-core": "^4.11.5"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -55,7 +55,7 @@ module.exports = {
 
 function updatePresence(client) {
   const activities = [
-    { name: "Gram w twierdzę!" },
+    { name: "Gram w Twierdzę!" },
     { name: `Mój ping: ${client.ws.ping}ms` },
     { name: `Jestem na ${client.guilds.cache.size} serwerach!` },
     { name: `Pracuję bez przerwy: ${formatUptime(client.uptime)}` },

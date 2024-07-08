@@ -9,8 +9,6 @@ module.exports = {
     const { client, commandName, customId } = interaction;
 
     try {
-      console.log(interaction.isUserContextMenuCommand());
-
       // slash commands
       if (interaction.isChatInputCommand()) {
         const command = client.slashCommands.get(commandName);
