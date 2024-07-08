@@ -1,9 +1,9 @@
 const { PermissionsBitField, Collection } = require("discord.js");
-const checkInactivity = require("../computings/checkInactivity");
-const createAudioPlayers = require("../computings/createAudioPlayers");
-const createDatabases = require("../computings/createDatabases");
-const loadConfig = require("../computings/loadConfig");
-const updateStats = require("../computings/update/updateStats");
+const checkInactivity = require("../functions/time/checkInactivity");
+const createAudioPlayers = require("../functions/music/createAudioPlayers");
+const createDatabases = require("../functions/settings/createDatabases");
+const loadConfig = require("../functions/settings/loadConfig");
+const updateStats = require("../functions/messages/updateStats");
 
 module.exports = {
   name: "ready",
@@ -13,7 +13,7 @@ module.exports = {
       `${client.user.username} is online on ${client.guilds.cache.size} servers!`
     );
 
-    updateStats(client);
+    // updateStats(client);
 
     // Set initial presence
     updatePresence(client);
@@ -49,6 +49,7 @@ module.exports = {
         new Collection(firstInvates.map(invite => [invite.code, invite.uses]))
       );
     });
+    console.log("git");
   },
 };
 

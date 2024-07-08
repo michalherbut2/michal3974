@@ -1,6 +1,6 @@
 const { Events } = require("discord.js");
-const resetUserInactivity = require("../computings/resetUserInactivity");
-const notifyModerators = require("../computings/notifyModerators");
+const resetUserInactivity = require("../functions/time/resetUserInactivity");
+const notifyModerators = require("../functions/messages/notifyModerators");
 
 module.exports = {
   name: Events.VoiceStateUpdate,

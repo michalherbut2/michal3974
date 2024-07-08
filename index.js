@@ -1,7 +1,12 @@
 const { TOKEN } = require("./config.json");
-const { Client, GatewayIntentBits, Collection, Partials} = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+  Collection,
+  Partials,
+} = require("discord.js");
 const fs = require("fs");
-const loadSlashCommands = require("./computings/loadSlashCommands");
+const loadSlashCommands = require("./functions/settings/loadSlashCommands");
 
 const client = new Client({
   intents: [
@@ -19,8 +24,8 @@ const client = new Client({
   ],
   partials: [
     Partials.Channel,
-    Partials.Message // dm
-  ]
+    Partials.Message, // dm
+  ],
 });
 
 // Load Event files from events folder

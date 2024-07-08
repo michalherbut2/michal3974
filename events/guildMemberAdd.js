@@ -1,5 +1,5 @@
 const { Events, PermissionFlagsBits } = require("discord.js");
-const sendEmbed = require("../computings/messages/sendEmbed");
+const sendEmbed = require("../functions/messages/sendEmbed");
 const { PermissionsBitField } = require("discord.js");
 
 module.exports = {

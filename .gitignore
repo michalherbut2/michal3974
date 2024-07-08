@@ -20,10 +20,11 @@
 .env.production.local
 config.json
 *.db
-computings_old
+functions_old
 commands_old
 .vscode
 syf
+old
 config2.json
 
 npm-debug.log*

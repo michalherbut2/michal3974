@@ -1,10 +1,10 @@
 const { Events } = require("discord.js");
-const logPunishments = require("../computings/logPunishments");
+const logPunishments = require("../functions/messages/logPunishments");
 
 module.exports = {
-    name: Events.GuildAuditLogEntryCreate,
-    once: false,
-    async execute(auditLog, guild, client) {
-        logPunishments(auditLog, guild, client)
-    }
-}
+  name: Events.GuildAuditLogEntryCreate,
+  once: false,
+  async execute(auditLog, guild, client) {
+    logPunishments(auditLog, guild, client);
+  },
+};

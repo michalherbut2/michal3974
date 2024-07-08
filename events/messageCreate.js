@@ -1,5 +1,4 @@
-const reactOnRectutation = require("../computings/reactOnRectutation");
-const { PREFIX } = require("../config.json");
+const reactOnRectutation = require("../functions/messages/reactOnRectutation");
 const { Events } = require("discord.js");
 
 module.exports = {

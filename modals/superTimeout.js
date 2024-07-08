@@ -1,4 +1,4 @@
-const sendEmbed = require("../computings/messages/sendEmbed");
+const sendEmbed = require("../functions/messages/sendEmbed");
 
 module.exports = {
   name: "superTimeout",
