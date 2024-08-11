@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const betterSqlite3 = require("better-sqlite3");
 const loadConfig = require("../../../functions/settings/loadConfig");
-const { replyEmbed } = require("../../../functions/messages/createEmbed");
+const sendEmbed = require("../../../functions/messages/sendEmbed");
 const getConfig = require("../../../functions/settings/getConfig");
 
 module.exports = {
@@ -133,5 +133,5 @@ async function showSettings(interaction, db) {
   let message = "";
   for (const key in config)
     message += `${key}: <${key.match(/rola/) ? "@&" : "#"}${config[key]}>\n`;
-  replyEmbed(interaction, "Konfiguracja bota", message);
+  sendEmbed(interaction, { title: "Konfiguracja bota", description: message });
 }

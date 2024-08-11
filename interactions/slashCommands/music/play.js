@@ -3,6 +3,7 @@ const getResource = require("../../../functions/music/getResource");
 const createVoiceConnection = require("../../../functions/music/createVoiceConnection");
 const playMusic = require("../../../functions/music/playMusic");
 const sendEmbed = require("../../../functions/messages/sendEmbed");
+const getResourceOld = require("../../../functions/music/getResourceOld");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,14 +17,15 @@ module.exports = {
     ),
   async execute(interaction) {
     try {
-      interaction.deferReply();
+      await interaction.deferReply();
 
       const voiceConnection = createVoiceConnection(interaction);
 
       const song = interaction.options.getString("muzyka");
 
       const audioResource = await getResource(song);
-
+      // const audioResource = await getResourceOld(song);
+      // console.log("audioResource", audioResource);
       playMusic(interaction, audioResource, voiceConnection);
     } catch (error) {
       console.error("Problem:", error);

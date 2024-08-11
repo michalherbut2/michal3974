@@ -98,7 +98,7 @@ module.exports = async (
       "\x1b[31m%s\x1b[0m",
       `The embed has not been sent to the ${
         target?.name || target?.displayName
-      }.\n${error.message}`
+      }.\n${error}`
     ); // red
   }
 };

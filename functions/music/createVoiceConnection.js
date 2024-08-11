@@ -5,7 +5,7 @@ module.exports = interaction => {
   const voiceChannel = interaction.member?.voice.channel;
 
   if (!voiceChannel)
-    throw new Error("dołącz do kanału głosowego!")
+    throw new Error("Dołącz do kanału głosowego!")
 
   const voiceConnection = joinVoiceChannel({
     channelId: voiceChannel.id,

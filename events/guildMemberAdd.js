@@ -15,8 +15,8 @@ module.exports = {
     // check bot permission to work with invites (ManageGuild)
     const clientMember = guild.members.cache.get(client.user.id);
 
-    // if (!clientMember.permissions.has(PermissionFlagsBits.ManageGuild))
-    //   return console.log("no permissions to check invites");
+    if (!clientMember.permissions.has(PermissionFlagsBits.ManageGuild))
+      return console.log(`no permissions to check invites on ${guild}`);
 
     // find current invite
     const newInvites = await guild.invites.fetch();

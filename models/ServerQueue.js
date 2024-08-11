@@ -23,11 +23,11 @@ class ServerQueue {
     });
     
     this.player.on(AudioPlayerStatus.Idle, async () => {
-      // get title
-      const title = this.queue.shift()?.metadata?.title;
+      // get the url
+      const url = this.queue.shift()?.metadata?.url;
 
-      // loop song
-      this.isLooping && title && this.queue.unshift(await getResource(title));
+      // loop the url
+      this.isLooping && url && this.queue.unshift(await getResource(url));
       
       this.queue.length
         // play the next song from the queue
@@ -47,6 +47,7 @@ class ServerQueue {
   }
 
   play() {
+    console.log("musica:",this.queue[0]);
     this.player.play(this.queue[0]);
     this.isPlaying = true;
     console.log("gram");
