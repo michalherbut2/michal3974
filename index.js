@@ -43,11 +43,12 @@ for (const file of eventFiles) {
 client.queue = new Collection();
 client.radio = new Collection();
 client.fileQueue = new Collection();
-client.slashCommands = new Collection();
+client.interactions = new Collection();
+// client.slashCommands = new Collection();
+// client.contextMenus = new Collection();
 client.buttons = new Collection();
 client.config = new Collection();
 client.inactivity = new Collection();
-client.contextMenus = new Collection();
 client.invites = new Collection();
 client.modals = new Collection();
 

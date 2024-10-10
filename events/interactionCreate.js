@@ -11,7 +11,7 @@ module.exports = {
     try {
       // slash commands
       if (interaction.isChatInputCommand()) {
-        const command = client.slashCommands.get(commandName);
+        const command = client.interactions.get(commandName);
 
         if (!command) throw new Error(`${commandName} command not found!.`);
 
@@ -25,7 +25,7 @@ module.exports = {
         await button.execute(interaction);
       } else if (interaction.isUserContextMenuCommand()) {
         // context menus commands
-        const contextMenu = client.contextMenus.get(commandName);
+        const contextMenu = client.interactions.get(commandName);
 
         if (!contextMenu)
           throw new Error(`${commandName} context menu not found!`);
