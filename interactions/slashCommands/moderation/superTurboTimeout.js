@@ -20,7 +20,6 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    console.log("interaction:", interaction);
     const { options, guild } = interaction;
 
     const user = options.getUser("uzytkownik");

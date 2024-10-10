@@ -38,7 +38,8 @@ const commands = [];
     console.log(
       `Started refreshing ${commands.length} application (/) commands.`
     );
-
+    console.log(commands.map(a=>a.name).join(", "));
+    
     // Construct and prepare an instance of the REST module
     const rest = new REST().setToken(TOKEN);
 
