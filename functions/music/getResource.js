@@ -1,18 +1,24 @@
 const { createAudioResource } = require("@discordjs/voice");
-// const ytdl = require("@distube/ytdl-core");
-const ytdl = require("ytdl-core");
-
-const ytsr = require("yt-search");
 const { Attachment } = require("discord.js");
+const { Manager } = require("erela.js");
 
-const { exec } = require("child_process");
-const util = require("util");
-const execPromise = util.promisify(exec); 
+// Assume you have a Lavalink manager instance set up
+const manager = new Manager({
+  nodes: [
+    {
+      host: "lavalinkv3-id.serenetia.com",
+      port: 443,
+      password: "BatuManaBisa",
+      secure: true,
+    },
+  ],
+  send: (id, payload) => {
+    const guild = client.guilds.cache.get(id);
+    if (guild) guild.shard.send(payload);
+  },
+});
 
-const YouTube = require("youtube-sr").default;
-
-module.exports = async song => {
-  // let videoInfo, url, title, duration, stream;
+module.exports = async (song) => {
   const streams = [];
 
   if (song instanceof Attachment) {
@@ -25,99 +31,62 @@ module.exports = async song => {
       },
     });
   } else {
-    // Check if song is a YouTube URL
-    if (ytdl.validateURL(song)) {
-      // const searchResults = await ytsr( { listId: 'K_yBUfMGvzc&list=RDK_yBUfMGvzc&index=1&ab_channel=PRMDMusic' } )
-      try {
-        const searchResults = await YouTube.getPlaylist(song);
-
-        // console.log(searchResults);
-        urls = searchResults.videos.map(v =>
-          streams.push({
-            stream: `https://www.youtube.com/watch?v=${v.id}`,
-            metadata: {
-              title: v.title,
-              duration: v.durationFormatted,
-              url: `https://www.youtube.com/watch?v=${v.id}`,
-            },
-          })
-        );
-        // console.log("xd", urls);
-        if (!urls.length) throw new Error("Playlist is empty!");
-      } catch (error) {
-        // Regular video URL
-        // url = song;
-        streams.push({
-          stream: song,
-          metadata: {
-            title: song.name,
-            duration: await getDuration(song.url),
-            url: song.url,
-          },
-        });
-      }
+    let result;
+    if (isURL(song)) {
+      result = await manager.search(song);
     } else {
-      // If not a URL, search on YouTube
-      const searchResults = await ytsr(song);
-
-      if (!searchResults.videos.length) throw new Error("No video found!");
-
-      streams.push({
-        metadata: {
-          url: searchResults.videos[0].url,
-        },
-      });
+      result = await manager.search(song, "youtube");
     }
 
-    // if (!url) throw new Error("No URL found!");
-
-    await Promise.all(
-      streams.map(async s => {
-        const videoInfo = await ytdl.getInfo(s.metadata.url);
-        s.stream = ytdl(s.metadata.url, { filter: "audioonly" });
-        s.metadata.title = videoInfo.videoDetails.title;
-        s.metadata.duration = await formatDuration2(
-          videoInfo.videoDetails.lengthSeconds
-        );
-      })
-    );
-    // streams[0] = {
-    //   stream: ytdl(url, { filter: "audioonly" }),
-    //   metadata: {
-    //     title: videoInfo.videoDetails.title,
-    //     duration: await formatDuration2(videoInfo.videoDetails.lengthSeconds),
-    //   },
-    // };
-
-    // title = videoInfo.videoDetails.title;
-    // duration = await formatDuration2(videoInfo.videoDetails.lengthSeconds);
-    // stream = ytdl(url, { filter: "audioonly" });
+    if (result.loadType === "PLAYLIST_LOADED") {
+      result.tracks.forEach((track) => {
+        streams.push({
+          stream: track.uri,
+          metadata: {
+            title: track.title,
+            duration: formatDuration2(track.duration / 1000),
+            url: track.uri,
+          },
+        });
+      });
+    } else if (result.loadType === "TRACK_LOADED" || result.loadType === "SEARCH_RESULT") {
+      const track = result.tracks[0];
+      streams.push({
+        stream: track.uri,
+        metadata: {
+          title: track.title,
+          duration: formatDuration2(track.duration / 1000),
+          url: track.uri,
+        },
+      });
+    } else {
+      throw new Error("No tracks found!");
+    }
   }
 
-  return streams.map(s => {
-    // console.log(s);
+  return streams.map((s) => {
     const resource = createAudioResource(s.stream);
     resource.metadata = s.metadata;
     return resource;
   });
 };
 
-const formatDuration2 = async seconds =>
+const formatDuration2 = async (seconds) =>
   new Date(seconds * 1000).toISOString().slice(11, 19);
 
 async function getDuration(url) {
-  const cmd = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${url}"`;
-  try {
-    const { stdout } = await execPromise(cmd);
-    return formatDuration2(parseFloat(stdout));
-  } catch (error) {
-    console.error("Error getting duration:", error);
-    return null;
+  const result = await manager.search(url);
+  if (result.tracks.length > 0) {
+    return formatDuration2(result.tracks[0].duration / 1000);
   }
+  return null;
 }
 
-function formatDuration(seconds) {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+function isURL(str) {
+  try {
+    new URL(str);
+    return true;
+  } catch {
+    return false;
+  }
 }
