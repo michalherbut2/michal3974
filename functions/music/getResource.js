@@ -1,5 +1,5 @@
 const { createAudioResource } = require("@discordjs/voice");
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 const ytsr = require("yt-search");
 const { Attachment } = require("discord.js");
 const { exec } = require("child_process");
