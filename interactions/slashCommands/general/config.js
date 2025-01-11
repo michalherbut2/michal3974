@@ -77,6 +77,38 @@ module.exports = {
         )
     )
     .addSubcommand(subcommand =>
+      subcommand.setName("zmien").setDescription("zmienia jedną opcję")
+        .addStringOption(option =>
+          option
+            .setName("opcja")
+            .setDescription("Opcja, którą chcesz zmienić")
+            .setRequired(true)
+            .addChoices(
+              { name: "rola_za_1_ostrzerzenie", value: "rola_za_1_ostrzerzenie" },
+              { name: "rola_za_2_ostrzerzenie", value: "rola_za_2_ostrzerzenie" },
+              { name: "rola_za_3_ostrzerzenie", value: "rola_za_3_ostrzerzenie" },
+              { name: "rola_zakaz_pisania", value: "rola_zakaz_pisania" },
+              { name: "rola_zakaz_gadania", value: "rola_zakaz_gadania" },
+              { name: "kanal_do_komend", value: "kanal_do_komend" },
+              { name: "kanal_do_kar", value: "kanal_do_kar" },
+              { name: "aktywna_rola", value: "aktywna_rola" },
+              { name: "rola_za_punkty", value: "rola_za_punkty" }
+            )
+        )
+        .addRoleOption(option =>
+          option
+            .setName("nowa_rola")
+            .setDescription("nowa rola do przypisania")
+            .setRequired(false)
+        )
+        .addChannelOption(option =>
+          option
+            .setName("nowy_kanal")
+            .setDescription("nowy kanał do przypisania")
+            .setRequired(false)
+        )
+    )
+    .addSubcommand(subcommand =>
       subcommand.setName("poka").setDescription("pokazuje konfigurację")
     ),
   async execute(interaction) {
@@ -89,6 +121,10 @@ module.exports = {
         case "ustaw":
           await updateSettings(interaction, db);
           await interaction.reply("Zmieniono konfigurację!");
+          break;
+        case "zmien":
+          await updateSingleSetting(interaction, db);
+          await interaction.reply("Zmieniono pojedynczą opcję konfiguracji!");
           break;
         case "poka":
           await showSettings(interaction, db);
@@ -127,11 +163,37 @@ async function updateSettings(interaction, db) {
   loadConfig(interaction.client);
 }
 
+async function updateSingleSetting(interaction, db) {
+  const option = interaction.options.getString("opcja");
+  let newRole;
+  let newChannel;
+
+  if (interaction.options.getRole("nowa_rola")) {
+    newRole = interaction.options.getRole("nowa_rola");
+  }
+
+  if (interaction.options.getChannel("nowy_kanal")) {
+    newChannel = interaction.options.getChannel("nowy_kanal");
+  }
+
+  const updateQuery =
+    "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)";
+  
+  if (newRole) {
+    db.prepare(updateQuery).run(option, newRole.id);
+  } else if (newChannel) {
+    db.prepare(updateQuery).run(option, newChannel.id);
+  } else {
+    throw new Error("Nie podano żadnej nowej roli ani kanału.");
+  }
+}
+
 async function showSettings(interaction, db) {
   const config = await getConfig(db);
-  console.log(config);
-  let message = "";
+  let description = "";
   for (const key in config)
-    message += `${key}: <${key.match(/rola/) ? "@&" : "#"}${config[key]}>\n`;
-  sendEmbed(interaction, { title: "Konfiguracja bota", description: message });
+    description += `${key}: <${key.match(/rola/) ? "@&" : "#"}${config[key]}>\n`;
+  
+  if (!description) description = "Nie skonfigurowano bota, wpisz: `/config ustaw`"
+  sendEmbed(interaction, { title: "Konfiguracja bota", description });
 }

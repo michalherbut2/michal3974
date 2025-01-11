@@ -14,7 +14,7 @@ const cooldownTime = 60_000; // Cooldown time in milliseconds
 
 module.exports = newState => {
   // Check if the user joined the specific voice channel
-  console.log(newState.channel?.name, voiceChannelName, newState.channel?.name !== voiceChannelName, isCooldown);
+  // console.log(newState.channel?.name, voiceChannelName, newState.channel?.name !== voiceChannelName, isCooldown);
   
   if (newState.channel?.name !== voiceChannelName || isCooldown) return;
   console.log("sprawdzam czy masz rangę");

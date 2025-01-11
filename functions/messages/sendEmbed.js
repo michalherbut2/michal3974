@@ -53,8 +53,11 @@ module.exports = async (
       break;
   }
 
+  // check description
+  if (!description) description = "[błąd] pusty opis, zgłoś to do Szanownego Patryka" 
+
   // create an embed
-  const embed = new EmbedBuilder().setColor(color).setDescription(description);
+  const embed = new EmbedBuilder().setColor(color).setDescription(description); 
   if (title) embed.setTitle(title);
   if (thumbnail) embed.setThumbnail(thumbnail);
   if (footerText) embed.setFooter({ text: footerText });

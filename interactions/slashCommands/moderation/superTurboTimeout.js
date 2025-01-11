@@ -44,7 +44,6 @@ module.exports = {
       sendEmbed(interaction, {
         description: error.message,
         ephemeral: true,
-        followUp: true,
         color: "red",
       });
     }

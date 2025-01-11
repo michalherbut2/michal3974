@@ -1,6 +1,6 @@
 const { Events } = require("discord.js");
-const resetUserInactivity = require("../functions/time/resetUserInactivity");
-const notifyModerators = require("../functions/messages/notifyModerators");
+// const resetUserInactivity = require("../functions/time/resetUserInactivity");
+// const notifyModerators = require("../functions/messages/notifyModerators");
 
 module.exports = {
   name: Events.VoiceStateUpdate,
@@ -11,11 +11,13 @@ module.exports = {
     //   `${newState.member.user.tag} dołączył do kanału głosowego ${newState?.channel?.name}.`
     // );
 
-    notifyModerators(newState);
+    // notify moderators unverified user joined in verifacation channel
+    // notifyModerators(newState);
 
-    const interval = client.inactivity.get(newState.guild.id);
+    // code use to check activity and remove roles
+    // const interval = client.inactivity.get(newState.guild.id);
 
-    if (interval && !interval?._destroyed)
-      resetUserInactivity(newState.member.user.id, newState.guild.id);
+    // if (interval && !interval?._destroyed)
+    //   resetUserInactivity(newState.member.user.id, newState.guild.id);
   },
 };
