@@ -304,238 +304,204 @@ module.exports = {
     .setDescription("Rozpocznij quiz"),
 
   async execute(interaction) {
-    const startTime = Date.now();
-    const users = new Set();
-    // const reactionEmoji = interaction.client.emojis.cache.length;
-    // console.log(reactionEmoji);
+    try {
+      const startTime = Date.now();
+      const users = new Set();
+      const waitingTime = 60; // seconds
 
-    const waitingTime = 60; // seconds
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("join_button")
+          .setLabel("Dołącz")
+          .setEmoji("👍")
+          .setStyle(ButtonStyle.Primary)
+      );
 
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("join_button")
-        .setLabel("Dołącz")
-        .setEmoji("👍")
-        .setStyle(1)
-    );
-    let count = 0;
-    await interaction.reply({
-      embeds: [
-        createSimpleEmbed(
-          `Rozpoczynamy quiz! Aby dołączyć, kliknij przycisk poniżej.\nZapisy trwają przez <t:${
-            parseInt(startTime / 1000) + waitingTime
-          }:R> sekund. :smiley:\nLiczba uczestników: ${count++}`
-        ),
-      ],
-      components: [row],
-    });
-
-    const filter = i => i.customId === "join_button" && !i.user.bot;
-
-    const collector = interaction.channel.createMessageComponentCollector({
-      filter,
-      time: waitingTime * 1000,
-    });
-    collector.on("collect", i => {
-      if (users.has(i.user.id)) {
-        i.reply({
-          embeds: [createWarningEmbed(`Już dołączył(a): ${i.user.username}!`)],
-          ephemeral: true,
-        });
-        return setTimeout(() => i.deleteReply(), 3000);
-      }
-
-      // i.reply();
-      users.add(i.user.id);
-      i.reply({
-        embeds: [createSimpleEmbed(`Dołączył(a): ${i.user.username}`)],
-        ephemeral: true,
-      });
-      setTimeout(() => i.deleteReply(), 3000);
-      interaction.editReply({
+      let count = 0;
+      await interaction.reply({
         embeds: [
           createSimpleEmbed(
             `Rozpoczynamy quiz! Aby dołączyć, kliknij przycisk poniżej.\nZapisy trwają przez <t:${
-              parseInt(startTime / 1000) + waitingTime
-            }:R> sekund. :smiley:\nLiczba uczestników: ${count++}`
+              Math.floor(startTime / 1000) + waitingTime
+            }:R> sekund. :smiley:\nLiczba uczestników: ${count}`
           ),
         ],
         components: [row],
       });
-    });
 
-    collector.on("end", collected => {
-      const quizParticipants = new Collection();
-      // console.log(quizParticipants);
-      // collected.map(i => i.user.username).join(", ")
-      collected.forEach(i => quizParticipants.set(i.user.id, { score: 0 }));
+      const filter = i => i.customId === "join_button" && !i.user.bot;
 
-      // interaction.followUp(
-      //   `Zapisy zakończone! Uczestnicy: ${collected
-      //     .map(i => i.user.username)
-      //     .join(", ")}`
-      // );
-      currentQuestionIndex = 0;
+      const collector = interaction.channel.createMessageComponentCollector({
+        filter,
+        time: waitingTime * 1000,
+      });
 
-      // startQuiz(interaction.channel, quizParticipants);
-      // console.log(quizParticipants.size,quizParticipants.length);
-      if (quizParticipants.size) startQuiz(interaction, quizParticipants);
-      else interaction.deleteReply();
-    });
+      collector.on("collect", i => {
+        if (users.has(i.user.id)) {
+          i.reply({
+            embeds: [createWarningEmbed(`Już dołączył(a): ${i.user.username}!`)],
+            ephemeral: true,
+          });
+          return setTimeout(() => i.deleteReply(), 3000);
+        }
+
+        users.add(i.user.id);
+        i.reply({
+          embeds: [createSimpleEmbed(`Dołączył(a): ${i.user.username}`)],
+          ephemeral: true,
+        });
+        setTimeout(() => i.deleteReply(), 3000);
+
+        interaction.editReply({
+          embeds: [
+            createSimpleEmbed(
+              `Rozpoczynamy quiz! Aby dołączyć, kliknij przycisk poniżej.\nZapisy trwają przez <t:${
+                Math.floor(startTime / 1000) + waitingTime
+              }:R> sekund. :smiley:\nLiczba uczestników: ${++count}`
+            ),
+          ],
+          components: [row],
+        });
+      });
+
+      collector.on("end", collected => {
+        const quizParticipants = new Collection();
+        collected.forEach(i => quizParticipants.set(i.user.id, { score: 0 }));
+
+        if (quizParticipants.size) {
+          startQuiz(interaction, quizParticipants);
+        } else {
+          interaction.deleteReply();
+        }
+      });
+    } catch (error) {
+      console.error('Error during quiz setup:', error);
+      await interaction.reply({
+        content: "Wystąpił błąd podczas uruchamiania quizu!",
+        ephemeral: true,
+      });
+    }
   },
 };
 
-// async function startQuiz(channel, quizParticipants) {
 async function startQuiz(interaction, quizParticipants) {
-  const users = new Set();
-  let startTime = Date.now();
-  const guessingTime = 20; // seconds
+  try {
+    const users = new Set();
+    const guessingTime = 20; // seconds
 
-  const quiz = quizzes[currentQuestionIndex];
-  // console.log(quizParticipants);
+    for (let currentQuestionIndex = 0; currentQuestionIndex < quizzes.length; currentQuestionIndex++) {
+      const quiz = quizzes[currentQuestionIndex];
+      const question = quiz.questions[Math.floor(Math.random() * quiz.questions.length)];
+      const shuffledAnswers = shuffleArray(question.answers);
 
-  if (currentQuestionIndex < quizzes.length) {
-    // if (currentQuestionIndex < 1) {
-    // console.log(quiz);
-    const question =
-      quiz.questions[Math.floor(Math.random() * quiz.questions.length)];
-    const shuffledAnswers = shuffleArray(question.answers);
-    // console.log(startTime);
-    const questionEmbed = new EmbedBuilder()
-      .setTitle(
-        `Kategoria: ${quiz.category} <t:${
-          parseInt(startTime / 1000) + guessingTime
-        }:R>`
-      )
-      .setDescription(question.question + "\nOdpowiedzi:")
-      // .addFields("Odpowiedzi")
-      .addFields(
-        shuffledAnswers.map((answer, index) => ({
-          // name: ,
-          name: "\u200B",
-          value: `**${index + 1}.** ${answer}`,
-          inline: true,
-        }))
-        // .map((answer, index) => `${index + 1}. ${answer}`)
-        // .join("\n")
-      )
-      .setColor("#3498db");
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("1")
-        // .setLabel("Odpowiedź 1")
-        .setEmoji("1️⃣")
-        .setStyle(1),
-      new ButtonBuilder()
-        .setCustomId("2")
-        // .setLabel("Odpowiedź 2")
-        .setEmoji("2️⃣")
-        .setStyle(1),
-      new ButtonBuilder()
-        .setCustomId("3")
-        // .setLabel("Odpowiedź 3")
-        .setEmoji("3️⃣")
-        .setStyle(1),
-      new ButtonBuilder()
-        .setCustomId("4")
-        // .setLabel("Odpowiedź 4")
-        .setEmoji("4️⃣")
-        .setStyle(1)
-    );
+      const questionEmbed = new EmbedBuilder()
+        .setTitle(
+          `Kategoria: ${quiz.category} <t:${Math.floor(Date.now() / 1000) + guessingTime}:R>`
+        )
+        .setDescription(question.question)
+        .addFields(
+          shuffledAnswers.map((answer, index) => ({
+            name: "\u200B",
+            value: `**${index + 1}.** ${answer}`,
+            inline: true,
+          }))
+        )
+        .setColor("#3498db");
 
-    // const message = await channel.send({
-    const message = await interaction.editReply({
-      embeds: [questionEmbed],
-      // content:"elo"
-      components: [row],
-    });
-
-    const filter = i => {
-      const choice = parseInt(i.customId);
-      return (
-        !isNaN(choice) &&
-        choice > 0 &&
-        choice <= shuffledAnswers.length &&
-        quizParticipants.has(i.user.id)
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId("1").setEmoji("1️⃣").setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId("2").setEmoji("2️⃣").setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId("3").setEmoji("3️⃣").setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId("4").setEmoji("4️⃣").setStyle(ButtonStyle.Primary)
       );
-    };
 
-    // const collector = channel.createMessageComponentCollector({
-    const collector = interaction.channel.createMessageComponentCollector({
-      filter,
-      time: guessingTime * 1000,
-    });
-
-    collector.on("collect", async i => {
-      if (users.has(i.user.id)) {
-        await i.reply({
-          embeds: [
-            createWarningEmbed(
-              `${i.user.username} już udzielił(a) odpowiedzi!`
-            ),
-          ],
-          ephemeral: true,
-        });
-        return setTimeout(() => i.deleteReply(), 3000);
-      }
-
-      users.add(i.user.id);
-      const userChoice = parseInt(i.customId);
-      const correctIndex = shuffledAnswers.indexOf(question.correct);
-      const participant = quizParticipants.get(i.user.id);
-      // console.log(shuffledAnswers, correctIndex);
-      if (userChoice === correctIndex + 1) {
-        await i.reply({
-          embeds: [
-            createSuccessEmbed(
-              `Brawo! ${i.user.username} udzielił(a) poprawnej odpowiedzi!`
-            ),
-          ],
-          ephemeral: true,
-        });
-        participant.score++;
-        setTimeout(() => i.deleteReply(), 3000);
-      } else {
-        await i.reply({
-          embeds: [
-            createWarningEmbed(
-              `Niestety, odpowiedź niepoprawna, ${i.user.username}. Prawidłowa odpowiedź to: ${question.correct}`
-            ),
-          ],
-          ephemeral: true,
-        });
-        setTimeout(() => i.deleteReply(), 3000);
-      }
-    });
-
-    collector.on("end", collected => {
-      currentQuestionIndex++;
-      startQuiz(interaction, quizParticipants);
-    });
-  } else {
-    // console.log(quizParticipants);
-    const sortedParticipants = Array.from(quizParticipants.entries()).sort(
-      (a, b) => b[1].score - a[1].score
-    );
-
-    const resultsEmbed = new EmbedBuilder()
-      .setTitle("Wyniki Quizu")
-      .setColor("#3498db");
-
-    sortedParticipants.forEach(([userId, participant], index) => {
-      resultsEmbed.addFields({
-        value: `${index + 1}. <@${userId}> ${participant.score} punktów`,
-        name: "\u200B",
+      await interaction.editReply({
+        embeds: [questionEmbed],
+        components: [row],
       });
+
+      const filter = i => {
+        const choice = parseInt(i.customId);
+        return (
+          !isNaN(choice) &&
+          choice > 0 &&
+          choice <= shuffledAnswers.length &&
+          quizParticipants.has(i.user.id)
+        );
+      };
+
+      const collector = interaction.channel.createMessageComponentCollector({
+        filter,
+        time: guessingTime * 1000,
+      });
+
+      collector.on("collect", async i => {
+        if (users.has(i.user.id)) {
+          await i.reply({
+            embeds: [createWarningEmbed(`${i.user.username} już udzielił(a) odpowiedzi!`)],
+            ephemeral: true,
+          });
+          return setTimeout(() => i.deleteReply(), 3000);
+        }
+
+        users.add(i.user.id);
+        const userChoice = parseInt(i.customId);
+        const correctIndex = shuffledAnswers.indexOf(question.correct);
+        const participant = quizParticipants.get(i.user.id);
+
+        if (userChoice === correctIndex + 1) {
+          await i.reply({
+            embeds: [createSuccessEmbed(`Brawo! ${i.user.username} udzielił(a) poprawnej odpowiedzi!`)],
+            ephemeral: true,
+          });
+          participant.score++;
+          setTimeout(() => i.deleteReply(), 3000);
+        } else {
+          await i.reply({
+            embeds: [createWarningEmbed(`Niestety, odpowiedź niepoprawna, ${i.user.username}. Prawidłowa odpowiedź to: ${question.correct}`)],
+            ephemeral: true,
+          });
+          setTimeout(() => i.deleteReply(), 3000);
+        }
+      });
+
+      collector.on("end", () => {
+        if (currentQuestionIndex < quizzes.length - 1) {
+          startQuiz(interaction, quizParticipants);
+        } else {
+          showResults(interaction, quizParticipants);
+        }
+      });
+
+      await new Promise(resolve => setTimeout(resolve, guessingTime * 1000 + 500));
+    }
+  } catch (error) {
+    console.error('Error during quiz execution:', error);
+    await interaction.reply({
+      content: "Wystąpił błąd podczas quizu!",
+      ephemeral: true,
     });
-
-    // await channel.send({ embeds: [resultsEmbed] });
-    await interaction.editReply({ embeds: [resultsEmbed], components: [] });
-
-    quizActive = false;
-    quizParticipants.clear();
-    currentQuestionIndex = 0;
   }
+}
+
+function showResults(interaction, quizParticipants) {
+  const sortedParticipants = Array.from(quizParticipants.entries()).sort(
+    (a, b) => b[1].score - a[1].score
+  );
+
+  const resultsEmbed = new EmbedBuilder()
+    .setTitle("Wyniki Quizu")
+    .setColor("#3498db");
+
+  sortedParticipants.forEach(([userId, participant], index) => {
+    resultsEmbed.addFields({
+      name: `${index + 1}. <@${userId}>`,
+      value: `${participant.score} punktów`,
+      inline: true,
+    });
+  });
+
+  interaction.editReply({ embeds: [resultsEmbed], components: [] });
 }
 
 function shuffleArray(array) {
@@ -545,4 +511,25 @@ function shuffleArray(array) {
     [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
   }
   return shuffledArray;
+}
+
+function isFirstCharacterEmoji(str) {
+  if (str.length === 0) {
+    return false;
+  }
+
+  const firstCharCode = str.codePointAt(0);
+
+  return (
+    (firstCharCode >= 0x1f600 && firstCharCode <= 0x1f64f) ||
+    (firstCharCode >= 0x1f300 && firstCharCode <= 0x1f5ff) ||
+    (firstCharCode >= 0x1f680 && firstCharCode <= 0x1f6ff) ||
+    (firstCharCode >= 0x1f700 && firstCharCode <= 0x1f77f) ||
+    (firstCharCode >= 0x1f780 && firstCharCode <= 0x1f7ff) ||
+    (firstCharCode >= 0x1f800 && firstCharCode <= 0x1f8ff) ||
+    (firstCharCode >= 0x1f900 && firstCharCode <= 0x1f9ff) ||
+    (firstCharCode >= 0x1fa00 && firstCharCode <= 0x1fa6f) ||
+    (firstCharCode >= x0x2600 && firstCharCode <= 0x26ff) ||
+    (firstCharCode >= 0x2700 && firstCharCode <= 0x27bf)
+  );
 }

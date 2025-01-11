@@ -1,108 +1,90 @@
 const { createAudioResource } = require("@discordjs/voice");
-// const ytdl = require("@distube/ytdl-core");
 const ytdl = require("ytdl-core");
-
 const ytsr = require("yt-search");
 const { Attachment } = require("discord.js");
-
 const { exec } = require("child_process");
 const util = require("util");
-const execPromise = util.promisify(exec); 
-
+const execPromise = util.promisify(exec);
 const YouTube = require("youtube-sr").default;
 
-module.exports = async song => {
-  // let videoInfo, url, title, duration, stream;
-  const streams = [];
+module.exports = async (song) => {
+  try {
+    const streams = [];
 
-  if (song instanceof Attachment) {
-    streams.push({
-      stream: song.url,
-      metadata: {
-        title: song.name,
-        duration: await getDuration(song.url),
-        url: song.url,
-      },
-    });
-  } else {
-    // Check if song is a YouTube URL
-    if (ytdl.validateURL(song)) {
-      // const searchResults = await ytsr( { listId: 'K_yBUfMGvzc&list=RDK_yBUfMGvzc&index=1&ab_channel=PRMDMusic' } )
-      try {
-        const searchResults = await YouTube.getPlaylist(song);
+    if (song instanceof Attachment) {
+      streams.push({
+        stream: song.url,
+        metadata: {
+          title: song.name,
+          duration: await getDuration(song.url),
+          url: song.url,
+        },
+      });
+    } else {
+      // Check if song is a YouTube URL
+      if (ytdl.validateURL(song)) {
+        try {
+          const searchResults = await YouTube.getPlaylist(song);
+          searchResults.videos.forEach((video) => {
+            streams.push({
+              stream: `https://www.youtube.com/watch?v=${video.id}`,
+              metadata: {
+                title: video.title,
+                duration: video.durationFormatted,
+                url: `https://www.youtube.com/watch?v=${video.id}`,
+              },
+            });
+          });
 
-        // console.log(searchResults);
-        urls = searchResults.videos.map(v =>
+          if (streams.length === 0) throw new Error("Playlist is empty!");
+        } catch (error) {
+          // Regular video URL
           streams.push({
-            stream: `https://www.youtube.com/watch?v=${v.id}`,
+            stream: song,
             metadata: {
-              title: v.title,
-              duration: v.durationFormatted,
-              url: `https://www.youtube.com/watch?v=${v.id}`,
+              title: await getTitle(song),
+              duration: await getDuration(song),
+              url: song,
             },
-          })
-        );
-        // console.log("xd", urls);
-        if (!urls.length) throw new Error("Playlist is empty!");
-      } catch (error) {
-        // Regular video URL
-        // url = song;
+          });
+        }
+      } else {
+        // If not a URL, search on YouTube
+        const searchResults = await ytsr(song);
+
+        if (!searchResults.videos.length) throw new Error("No video found!");
+
         streams.push({
-          stream: song,
           metadata: {
-            title: song.name,
-            duration: await getDuration(song.url),
-            url: song.url,
+            url: searchResults.videos[0].url,
           },
         });
       }
-    } else {
-      // If not a URL, search on YouTube
-      const searchResults = await ytsr(song);
 
-      if (!searchResults.videos.length) throw new Error("No video found!");
-
-      streams.push({
-        metadata: {
-          url: searchResults.videos[0].url,
-        },
-      });
+      await Promise.all(
+        streams.map(async (s) => {
+          const videoInfo = await ytdl.getInfo(s.metadata.url);
+          s.stream = ytdl(s.metadata.url, { filter: "audioonly" });
+          s.metadata.title = videoInfo.videoDetails.title;
+          s.metadata.duration = await formatDuration2(
+            videoInfo.videoDetails.lengthSeconds
+          );
+        })
+      );
     }
 
-    // if (!url) throw new Error("No URL found!");
-
-    await Promise.all(
-      streams.map(async s => {
-        const videoInfo = await ytdl.getInfo(s.metadata.url);
-        s.stream = ytdl(s.metadata.url, { filter: "audioonly" });
-        s.metadata.title = videoInfo.videoDetails.title;
-        s.metadata.duration = await formatDuration2(
-          videoInfo.videoDetails.lengthSeconds
-        );
-      })
-    );
-    // streams[0] = {
-    //   stream: ytdl(url, { filter: "audioonly" }),
-    //   metadata: {
-    //     title: videoInfo.videoDetails.title,
-    //     duration: await formatDuration2(videoInfo.videoDetails.lengthSeconds),
-    //   },
-    // };
-
-    // title = videoInfo.videoDetails.title;
-    // duration = await formatDuration2(videoInfo.videoDetails.lengthSeconds);
-    // stream = ytdl(url, { filter: "audioonly" });
+    return streams.map((s) => {
+      const resource = createAudioResource(s.stream);
+      resource.metadata = s.metadata;
+      return resource;
+    });
+  } catch (error) {
+    console.error("Error processing song:", error);
+    throw error; // Re-throw the error to be handled by the caller
   }
-
-  return streams.map(s => {
-    // console.log(s);
-    const resource = createAudioResource(s.stream);
-    resource.metadata = s.metadata;
-    return resource;
-  });
 };
 
-const formatDuration2 = async seconds =>
+const formatDuration2 = (seconds) =>
   new Date(seconds * 1000).toISOString().slice(11, 19);
 
 async function getDuration(url) {
@@ -113,6 +95,16 @@ async function getDuration(url) {
   } catch (error) {
     console.error("Error getting duration:", error);
     return null;
+  }
+}
+
+async function getTitle(url) {
+  try {
+    const info = await ytdl.getInfo(url);
+    return info.videoDetails.title;
+  } catch (error) {
+    console.error("Error getting title:", error);
+    return "Unknown Title";
   }
 }
 

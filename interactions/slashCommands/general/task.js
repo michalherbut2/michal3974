@@ -7,6 +7,21 @@ const {
   replySimpleEmbed,
 } = require("../../../functions/messages/createEmbed");
 
+// Funkcja do inicjalizacji bazy danych i tabeli
+function initializeDatabase(guildId) {
+  const db = new betterSqlite3(`db/db_${guildId}.db`);
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS task (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      content TEXT NOT NULL,
+      additional_info TEXT
+    )
+  `).run();
+  db.close();
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("task")
@@ -59,18 +74,16 @@ module.exports = {
         )
     )
     .addSubcommand(subcommand =>
-      subcommand.setName("update").setDescription("Update all tasks")
+      subcommand.setName("update").setDescription("Zaktualizuj wszystkie zadania")
     )
     .addSubcommand(subcommand =>
-      subcommand
-        .setName("czysc")
-        .setDescription("Usuń wszystkie zadania na serwerze")
+      subcommand.setName("czysc").setDescription("Usuń wszystkie zadania na serwerze")
     ),
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
-
     const guildId = interaction.guild.id;
     const db = new betterSqlite3(`db/db_${guildId}.db`);
+    initializeDatabase(guildId);
 
     try {
       switch (subcommand) {
@@ -97,185 +110,126 @@ module.exports = {
           break;
       }
     } catch (error) {
-      console.error(error);
-      // interaction.reply("Wystąpił problem! " + error.message);
-      replyWarningEmbed(interaction, error.message);
+      console.error("Error executing command:", error);
+      replyWarningEmbed(interaction, `Wystąpił problem: ${error.message}`);
+    } finally {
+      db.close();
     }
-    db.close();
   },
 };
-
-// setInterval(updateTasks, 15 * 60 * 1000);
 
 async function addTask(interaction, db) {
   const date = interaction.options.getString("data");
   const content = interaction.options.getString("tresc");
   const additionalInfo = interaction.options.getString("info");
 
-  if (!date || !content || !additionalInfo)
+  if (!date || !content || !additionalInfo) {
     throw new Error(
       "Użycie: !addtask <data wykonania> <treść zadania> <dodatkowe informacje>"
     );
+  }
 
   const dateFormat =
     /^(0?[1-9]|[12][0-9]|3[01])[.,-/\\ ](0?[1-9]|1[012])[.,-/\\ ]20[2-9]\d$/;
 
-  if (!dateFormat.test(date))
+  if (!dateFormat.test(date)) {
     throw new Error("Zła data: poprawny format daty: 01.01.2024");
+  }
 
   try {
-    await db
-      .prepare(
-        "INSERT INTO task (user_id, date, content, additional_info) VALUES (?, ?, ?, ?)"
-      )
-      .run(interaction.user.id, date, content, additionalInfo);
+    db.prepare(
+      "INSERT INTO task (user_id, date, content, additional_info) VALUES (?, ?, ?, ?)"
+    ).run(interaction.user.id, date, content, additionalInfo);
 
-    // interaction.reply({
-    //   embeds: [createSimpleEmbed(`Zadanie zostało dodane pomyślnie!`)],
-    // });
-    replySimpleEmbed(interaction, `Zadanie zostało dodane pomyślnie!`);
+    replySimpleEmbed(interaction, "Zadanie zostało dodane pomyślnie!");
     await setReminders(interaction, date, content);
   } catch (dbError) {
-    console.error("Błąd bazy danych przy dodawaniu zadania: " + dbError);
-    throw new Error(dbError.message);
+    console.error("Błąd bazy danych przy dodawaniu zadania:", dbError);
+    throw new Error("Błąd bazy danych: " + dbError.message);
   }
 }
 
 async function listTasks(interaction, db) {
   try {
-    // console.log(interaction);
-    const rows = await db
-      .prepare("SELECT id, date, content FROM task WHERE user_id = ?")
-      .all(interaction.user.id);
+    const rows = db.prepare("SELECT id, date, content FROM task WHERE user_id = ?").all(interaction.user.id);
 
-    if (rows.length === 0)
+    if (rows.length === 0) {
       return replySimpleEmbed(interaction, "Brak zaplanowanych zadań.");
-    // return interaction.reply({
-    //   embeds: [createSimpleEmbed("Brak zaplanowanych zadań.")],
-    // });
+    }
 
-    // console.log(rows);
-    const taskList = rows.map(
-      row =>
-        `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`
-    );
-    // interaction.reply(`Lista zadań:\n${taskList.join("\n")}`);
-    replyEmbed(interaction, "Lista zadań", taskList.join("\n"));
+    const taskList = rows.map(row => `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`).join("\n");
+    replyEmbed(interaction, "Lista zadań", taskList);
   } catch (dbError) {
-    console.error("Błąd bazy danych przy listowaniu zadań:" + dbError);
-    throw new Error(
-      "Wystąpił błąd podczas pobierania listy zadań: " + dbError.message
-    );
-    // interaction.reply(
-    //   "Wystąpił błąd podczas pobierania listy zadań: " + dbError.message
-    // );
+    console.error("Błąd bazy danych przy listowaniu zadań:", dbError);
+    throw new Error("Wystąpił błąd podczas pobierania listy zadań: " + dbError.message);
   }
 }
 
 async function listAllTasks(interaction, db) {
   try {
-    const rows = await db.prepare("SELECT id, date, content FROM task").all();
+    const rows = db.prepare("SELECT id, date, content FROM task").all();
 
-    if (rows.length === 0)
-      return replySimpleEmbed(
-        interaction,
-        "Brak zaplanowanych zadań na serwerze."
-      );
-    // return interaction.reply("Brak zaplanowanych zadań na serwerze.");
+    if (rows.length === 0) {
+      return replySimpleEmbed(interaction, "Brak zaplanowanych zadań na serwerze.");
+    }
 
-    const taskList = rows.map(
-      row =>
-        `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`
-    );
-    // interaction.reply(
-    //   `Lista wszystkich zadań na serwerze:\n${taskList.join("\n")}`
-    // );
-    replyEmbed(
-      interaction,
-      "Lista wszystkich zadań na serwerze",
-      taskList.join("\n")
-    );
+    const taskList = rows.map(row => `ID: ${row.id}, Data: ${formatDate(row.date)}, Treść: ${row.content}`).join("\n");
+    replyEmbed(interaction, "Lista wszystkich zadań na serwerze", taskList);
   } catch (dbError) {
-    console.error(
-      "Błąd bazy danych przy listowaniu wszystkich zadań: " + dbError
-    );
-    // interaction.reply(
-    //   "Wystąpił błąd podczas pobierania listy zadań: " + dbError.message
-    // );
-    throw new Error(
-      "Wystąpił błąd podczas pobierania listy zadań: " + dbError.message
-    );
+    console.error("Błąd bazy danych przy listowaniu wszystkich zadań:", dbError);
+    throw new Error("Wystąpił błąd podczas pobierania listy zadań: " + dbError.message);
   }
 }
 
 async function showTask(interaction, db) {
   const taskId = interaction.options.getString("id");
 
-  if (!taskId) throw new Error("Użycie: !showtask <ID zadania>");
+  if (!taskId) {
+    throw new Error("Użycie: !showtask <ID zadania>");
+  }
 
   try {
-    const row = await db.prepare("SELECT * FROM task WHERE id = ?").get(taskId);
+    const row = db.prepare("SELECT * FROM task WHERE id = ?").get(taskId);
 
-    if (!row)
+    if (!row) {
       throw new Error("Nie znaleziono zadania o podanym ID na serwerze.");
-    // console.log(row);
-    // interaction.reply(
-    //   `Szczegóły zadania (ID: ${row.id}):\nData: ${formatDate(
-    //     row.date
-    //   )}\nTreść: ${row.content}\nDodatkowe informacje: ${row.additional_info}`
-    // );
+    }
+
     replyEmbed(
       interaction,
       `Szczegóły zadania (ID: **${row.id}**):`,
-      `Data: **${formatDate(row.date)}**\nTreść: **${
-        row.content
-      }**\nDodatkowe informacje: **${row.additional_info}**`
+      `Data: **${formatDate(row.date)}**\nTreść: **${row.content}**\nDodatkowe informacje: **${row.additional_info}**`
     );
   } catch (dbError) {
-    console.error(
-      "Błąd bazy danych przy pokazywaniu szczegółów zadania: " + dbError
-    );
-    // interaction.reply(
-    // "Wystąpił błąd podczas pobierania informacji o zadaniu: " +
-    //   dbError.message
-    // );
-    throw new Error(
-      "Wystąpił błąd podczas pobierania informacji o zadaniu: " +
-        dbError.message
-    );
+    console.error("Błąd bazy danych przy pokazywaniu szczegółów zadania:", dbError);
+    throw new Error("Wystąpił błąd podczas pobierania informacji o zadaniu: " + dbError.message);
   }
 }
 
 async function removeTask(interaction, db) {
   const taskId = interaction.options.getString("id");
 
-  if (!taskId) throw new Error("Użycie: !removetask <ID zadania>");
+  if (!taskId) {
+    throw new Error("Użycie: !removetask <ID zadania>");
+  }
 
   try {
-    const result = await db
-      .prepare("DELETE FROM task WHERE id = ?")
-      .run(taskId);
+    const result = db.prepare("DELETE FROM task WHERE id = ?").run(taskId);
 
-    if (result.changes === 0)
+    if (result.changes === 0) {
       throw new Error("Nie znaleziono zadania o podanym ID na serwerze.");
+    }
 
-    // interaction.reply("Zadanie zostało usunięte pomyślnie.");
     replySimpleEmbed(interaction, "Zadanie zostało usunięte pomyślnie.");
   } catch (dbError) {
-    console.error("Błąd bazy danych przy usuwaniu zadania: " + dbError);
-    // interaction.reply(
-    //   "Wystąpił błąd podczas usuwania zadania: " + dbError.message
-    // );
-    replyWarningEmbed(
-      interaction,
-      "Wystąpił błąd podczas usuwania zadania: " + dbError.message
-    );
+    console.error("Błąd bazy danych przy usuwaniu zadania:", dbError);
+    replyWarningEmbed(interaction, "Wystąpił błąd podczas usuwania zadania: " + dbError.message);
   }
 }
 
 async function updateTasks(interaction, db) {
   try {
-    const rows = await db.prepare("SELECT * FROM task").all();
+    const rows = db.prepare("SELECT * FROM task").all();
 
     for (const row of rows) {
       const taskDate = new Date(row.date);
@@ -286,17 +240,13 @@ async function updateTasks(interaction, db) {
         user.send(
           `Przypomnienie: Masz zadanie "${row.content}" do wykonania w ciągu 15 minut! Dodatkowe informacje: ${row.additional_info}`
         );
-        // interaction.reply('Zadania zaktualizowane!');
       }
     }
-    // interaction.reply("Zadania zaktualizowane!");
+
     replySimpleEmbed(interaction, "Zadania zaktualizowane!");
   } catch (dbError) {
-    console.error("Błąd bazy danych przy aktualizacji zadań: " + dbError);
-    // interaction.reply(
-    //   "Błąd bazy danych przy aktualizacji zadań: " + dbError.message
-    // );
-    throw new Error("Błąd bazy danych przy aktualizacji zadań: " + dbError);
+    console.error("Błąd bazy danych przy aktualizacji zadań:", dbError);
+    throw new Error("Błąd bazy danych: " + dbError.message);
   }
 }
 
@@ -304,12 +254,13 @@ async function setReminders(interaction, date, content) {
   const serverId = interaction.guild.id;
   const userId = interaction.user.id;
   const client = interaction.client;
+
   try {
     const taskDate = new Date(date);
     const oneDayBefore = new Date(taskDate.getTime() - 24 * 60 * 60 * 1000);
     const oneHourBefore = new Date(taskDate.getTime() - 60 * 60 * 1000);
 
-    await setTimeout(() => {
+    setTimeout(() => {
       client.guilds.fetch(serverId).then(guild => {
         guild.members.fetch(userId).then(user => {
           user.send(
@@ -319,7 +270,7 @@ async function setReminders(interaction, date, content) {
       });
     }, oneDayBefore.getTime() - Date.now());
 
-    await setTimeout(() => {
+    setTimeout(() => {
       client.guilds.fetch(serverId).then(guild => {
         guild.members.fetch(userId).then(user => {
           user.send(
@@ -335,13 +286,11 @@ async function setReminders(interaction, date, content) {
 
 async function clearTasks(interaction, db) {
   try {
-    await db.prepare("DELETE FROM task").run();
-    interaction.reply("Wszystkie zadania usunięte!");
+    db.prepare("DELETE FROM task").run();
+    replySimpleEmbed(interaction, "Wszystkie zadania usunięte!");
   } catch (dbError) {
     console.error("Błąd bazy danych przy usuwaniu zadań:", dbError);
-    // interaction.reply(
-    //   "Wystąpił błąd podczas usuwania zadań: " + dbError.message
-    // );
+    replyWarningEmbed(interaction, "Wystąpił błąd podczas usuwania zadań: " + dbError.message);
   }
 }
 
@@ -354,11 +303,6 @@ function formatDate(dateString) {
     year: "numeric",
     month: "long",
     day: "numeric",
-    // hour: "numeric",
-    // minute: "numeric",
-    // second: "numeric",
-    // timeZoneName: "short",
   };
-  console.log(dateString);
   return `<t:${new Date(dateString).getTime() / 1000}:D>`;
 }

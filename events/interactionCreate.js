@@ -9,45 +9,60 @@ module.exports = {
     const { client, commandName, customId } = interaction;
 
     try {
-      // slash commands
+      // Handle slash commands
       if (interaction.isChatInputCommand()) {
         const command = client.interactions.get(commandName);
 
-        if (!command) throw new Error(`${commandName} command not found!.`);
+        if (!command) {
+          throw new Error(`Command "${commandName}" not found!`);
+        }
 
         await command.execute(interaction);
-      } else if (interaction.isButton()) {
-        // buttons
+      } 
+      // Handle button interactions
+      else if (interaction.isButton()) {
         const button = client.buttons.get(customId);
 
-        if (!button) throw new Error(`${customId} button not found!`);
+        if (!button) {
+          throw new Error(`Button "${customId}" not found!`);
+        }
 
         await button.execute(interaction);
-      } else if (interaction.isUserContextMenuCommand()) {
-        // context menus commands
+      } 
+      // Handle context menu commands
+      else if (interaction.isUserContextMenuCommand()) {
         const contextMenu = client.interactions.get(commandName);
 
-        if (!contextMenu)
-          throw new Error(`${commandName} context menu not found!`);
+        if (!contextMenu) {
+          throw new Error(`Context menu "${commandName}" not found!`);
+        }
 
         await contextMenu.execute(interaction);
-      } else if (interaction.isModalSubmit()) {
+      } 
+      // Handle modal submissions
+      else if (interaction.isModalSubmit()) {
         const modal = client.modals.get(customId);
-        if (!modal) throw new Error(`${customId} modal not found!`);
+
+        if (!modal) {
+          throw new Error(`Modal "${customId}" not found!`);
+        }
 
         await modal.execute(interaction);
+      } else {
+        throw new Error(`Unhandled interaction type: ${interaction.type}`);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Interaction handling error:", error);
 
-      if (interaction.replied || interaction.deferred)
-        sendEmbed(interaction, {
-          description: err.message,
+      if (interaction.replied || interaction.deferred) {
+        await sendEmbed(interaction, {
+          description: error.message,
           ephemeral: true,
           followUp: true,
         });
-      else
-        sendEmbed(interaction, { description: error.message, ephemeral: true });
+      } else {
+        await sendEmbed(interaction, { description: error.message, ephemeral: true });
+      }
     }
   },
 };

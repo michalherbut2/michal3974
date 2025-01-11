@@ -7,24 +7,35 @@ module.exports = {
     .setName("poka_wszystkie_plusy")
     .setDescription("Wyświetla plusy wszystkich użytkowników"),
   async execute(interaction) {
-    const db = new betterSqlite3(`db/db_${interaction.guild.id}.db`);
+    try {
+      const db = new betterSqlite3(`db/db_${interaction.guild.id}.db`);
 
-    const rows = db.prepare("SELECT * FROM plus ORDER BY plus_num DESC").all();
-    db.close();
-    if (rows.length === 0)
-      return interaction.reply("Brak danych o plusach w bazie.");
+      const rows = db.prepare("SELECT * FROM plus ORDER BY plus_num DESC").all();
+      db.close();
 
-    const content = (
-      await Promise.all(
-        rows.map(
-          async (row, index) =>
+      if (rows.length === 0) {
+        return await interaction.reply({
+          content: "Brak danych o plusach w bazie.",
+          ephemeral: true,
+        });
+      }
+
+      const content = rows
+        .map(
+          (row, index) =>
             `${index + 1}. <@${row.user_id}>: ${row.plus_num} plusów za: **${
               row.reason
             }**`
         )
-      )
-    ).join("\n");
+        .join("\n");
 
-    interaction.reply({ embeds: [createEmbed("Wszystkie plusy", content)] });
+      await interaction.reply({ embeds: [createEmbed("Wszystkie plusy", content)] });
+    } catch (error) {
+      console.error("Błąd podczas wykonywania komendy 'poka_wszystkie_plusy':", error);
+      await interaction.reply({
+        content: "Wystąpił błąd podczas wyświetlania plusów.",
+        ephemeral: true,
+      });
+    }
   },
 };

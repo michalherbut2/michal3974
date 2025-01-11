@@ -1,10 +1,10 @@
-const { GuildMember } = require("discord.js");
 const {
   EmbedBuilder,
   AttachmentBuilder,
   BaseInteraction,
   BaseChannel,
   User,
+  GuildMember,
 } = require("discord.js");
 
 module.exports = async (
@@ -22,84 +22,73 @@ module.exports = async (
     followUp = false,
   }
 ) => {
-  // get a color
-  switch (color) {
-    case "red":
-      color = 0xf60101;
-      break;
-
-    case "green":
-      color = 0x248046;
-      break;
-
-    case "light green":
-      color = 0x90ee90;
-      break;
-
-    case "intense green":
-      color = 0x41fd02;
-      break;
-
-    case "tiktok":
-      color = 0x00f2ea;
-      break;
-
-    case "youtube":
-      color = 0xdd2c28;
-      break;
-
-    case "instagram":
-      color = 0x794eba;
-      break;
-  }
-
-  // check description
-  if (!description) description = "[błąd] pusty opis, zgłoś to do Szanownego Patryka" 
-
-  // create an embed
-  const embed = new EmbedBuilder().setColor(color).setDescription(description); 
-  if (title) embed.setTitle(title);
-  if (thumbnail) embed.setThumbnail(thumbnail);
-  if (footerText) embed.setFooter({ text: footerText });
-
-  // create a message
-  const message = { embeds: [embed], ephemeral };
-  if (row) message.components = [row];
-  if (content) message.content = content;
-
-  // handle an images
-  if (image instanceof Array) {
-    image.map(i => message.embeds[0].setImage(i));
-    console.log(image);
-  } else if (image?.startsWith("http")) {
-    message.embeds[0].setImage(image);
-  } else if (image) {
-    const attachment = new AttachmentBuilder(image);
-    message.embeds[0].setImage(`attachment://${image.split("/").pop()}`);
-    message.files = [attachment];
-  }
-
-  // send the message
-  console.log("\x1b[32m%s\x1b[0m", "Sending embed."); // green
   try {
+    // Map color names to hex values
+    const colorMap = {
+      red: 0xf60101,
+      green: 0x248046,
+      "light green": 0x90ee90,
+      "intense green": 0x41fd02,
+      tiktok: 0x00f2ea,
+      youtube: 0xdd2c28,
+      instagram: 0x794eba,
+    };
+
+    // Get the color from the map if it's a string
+    if (typeof color === "string" && colorMap[color.toLowerCase()]) {
+      color = colorMap[color.toLowerCase()];
+    }
+
+    // Check description
+    if (!description) {
+      description = "[błąd] pusty opis, zgłoś to do Szanownego Patryka";
+    }
+
+    // Create an embed
+    const embed = new EmbedBuilder().setColor(color).setDescription(description);
+    if (title) embed.setTitle(title);
+    if (thumbnail) embed.setThumbnail(thumbnail);
+    if (footerText) embed.setFooter({ text: footerText });
+
+    // Create a message
+    const message = { embeds: [embed], ephemeral };
+    if (row) message.components = [row];
+    if (content) message.content = content;
+
+    // Handle images
+    if (Array.isArray(image)) {
+      image.forEach((img) => embed.setImage(img));
+    } else if (typeof image === "string" && image.startsWith("http")) {
+      embed.setImage(image);
+    } else if (image) {
+      const attachment = new AttachmentBuilder(image);
+      embed.setImage(`attachment://${image.split("/").pop()}`);
+      message.files = [attachment];
+    }
+
+    // Send the message
+    console.log("\x1b[32m%s\x1b[0m", "Sending embed."); // green
     if (
       target instanceof BaseChannel ||
       target instanceof User ||
       target instanceof GuildMember
-    )
-      // send to the channel or user
+    ) {
+      // Send to the channel or user
       return await target.send(message);
-    else if (target instanceof BaseInteraction) {
-      // follow up
-      if (followUp || target.replied || target.deferred)
+    } else if (target instanceof BaseInteraction) {
+      // Follow up or reply
+      if (followUp || target.replied || target.deferred) {
         return await target.followUp(message);
-      // reply
-      else return await target.reply(message);
+      } else {
+        return await target.reply(message);
+      }
+    } else {
+      throw new Error("Invalid target type.");
     }
   } catch (error) {
-    console.log(
+    console.error(
       "\x1b[31m%s\x1b[0m",
-      `The embed has not been sent to the ${
+      `The embed has not been sent to ${
         target?.name || target?.displayName
       }.\n${error}`
     ); // red

@@ -1,38 +1,24 @@
-const radioStreams = {
-  // radiokaszebe: "http://x.radiokaszebe.pl:9000/;?type=http&nocache=87",
-  // radioniepokalanow: "http://radioniepokalanow.com.pl:7600/rn.mp3",
-  // radiokaszebe: '0',
-  // radioniepokalanow: '1',
-  // radiomaryja: "https://fastcast4u.com/player/radiomaryja/",
-  // rmf: "https://www.rmfon.pl/play,8#p",
-  // eska: "http://www.eska.pl/radioonline/play/139",
-  // zet: "http://www.radiozet.pl/Radio/ZetOnline",
-  // trojka: "http://n-4-12.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx",
-  // classic: "http://www.rmf.fm/stations/station1.mp3",
-  // antyradio: "http://ant-waw-01.cdn.eurozet.pl:8602/listen.pls",
-  // eskatv: "http://www.eskatv.pl/static/stream.pls",
-};
 const { SlashCommandBuilder } = require("discord.js");
 const {
   joinVoiceChannel,
   createAudioResource,
   createAudioPlayer,
+  getVoiceConnection,
+  AudioPlayerStatus,
 } = require("@discordjs/voice");
-const { StreamType } = require("@discordjs/voice");
-const { AudioPlayerStatus } = require("@discordjs/voice");
-const { getVoiceConnection } = require("@discordjs/voice");
 
-// const radioList = option =>
-//   option
-//     .setName("station")
-//     .setDescription("Wybierz stację radiową lub podaj link do własnego radia")
-//     .setRequired(true)
-//     .addChoices(
-//       ...Object.keys(radioStreams).map(key => ({
-//         name: key,
-//         value: radioStreams[key],
-//       }))
-//     );
+const radioStreams = {
+  radiokaszebe: "http://x.radiokaszebe.pl:9000/;?type=http&nocache=87",
+  radioniepokalanow: "http://radioniepokalanow.com.pl:7600/rn.mp3",
+  radiomaryja: "https://fastcast4u.com/player/radiomaryja/",
+  rmf: "https://www.rmfon.pl/play,8#p",
+  eska: "http://www.eska.pl/radioonline/play/139",
+  zet: "http://www.radiozet.pl/Radio/ZetOnline",
+  trojka: "http://n-4-12.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx",
+  classic: "http://www.rmf.fm/stations/station1.mp3",
+  antyradio: "http://ant-waw-01.cdn.eurozet.pl:8602/listen.pls",
+  eskatv: "http://www.eskatv.pl/static/stream.pls",
+};
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -42,59 +28,116 @@ module.exports = {
       subcommand
         .setName("play")
         .setDescription("Odpal radio")
-        // .addStringOption(radioList)
+        .addStringOption(option =>
+          option
+            .setName("station")
+            .setDescription("Wybierz stację radiową lub podaj link do własnego radia")
+            .setRequired(true)
+            .addChoices(
+              ...Object.keys(radioStreams).map(key => ({
+                name: key,
+                value: radioStreams[key],
+              }))
+            )
+        )
     )
     .addSubcommand(subcommand =>
       subcommand
         .setName("stop")
         .setDescription("Wyłącz radio")
     ),
-  async execute(interaction) {
-    const subCommand = interaction.options.getSubcommand();
 
-    switch (subCommand) {
-      case "play":
-        await playRadio(interaction);
-        break;
-      case "stop":
-        await stopRadio(interaction);
-        break;
-      default:
-        interaction.reply("Nieznane polecenie!");
-        break;
+  async execute(interaction) {
+    try {
+      const subCommand = interaction.options.getSubcommand();
+
+      switch (subCommand) {
+        case "play":
+          await playRadio(interaction);
+          break;
+        case "stop":
+          await stopRadio(interaction);
+          break;
+        default:
+          await interaction.reply("Nieznane polecenie!", { ephemeral: true });
+          break;
+      }
+    } catch (error) {
+      console.error("Błąd podczas wykonywania komendy 'radio':", error);
+      await interaction.reply({
+        content: "Wystąpił błąd podczas wykonywania komendy.",
+        ephemeral: true,
+      });
     }
-    
   },
 };
+
 async function playRadio(interaction) {
-  // const station = interaction.options.getString("station");
+  try {
+    const station = interaction.options.getString("station");
 
-  const radioQueue = await interaction.client.radio.get(interaction.guild.id);
-  const connection = joinVoiceChannel({
-    channelId: interaction.member.voice.channelId,
-    guildId: interaction.guildId,
-    adapterCreator: interaction.guild.voiceAdapterCreator,
-  });
-  
-  // const audioResource = createAudioResource(station);
+    if (!interaction.member.voice.channelId) {
+      return await interaction.reply({
+        content: "Musisz być w kanale głosowym, aby użyć tej komendy!",
+        ephemeral: true,
+      });
+    }
 
-  if (!radioQueue.isPlaying) {
-    radioQueue.isPlaying = true;
-    radioQueue.player.play(radioQueue.queue[0]);
+    const radioQueue = interaction.client.radio.get(interaction.guild.id) || {
+      player: createAudioPlayer(),
+      queue: [],
+      isPlaying: false,
+    };
+    interaction.client.radio.set(interaction.guild.id, radioQueue);
+
+    const connection = joinVoiceChannel({
+      channelId: interaction.member.voice.channelId,
+      guildId: interaction.guildId,
+      adapterCreator: interaction.guild.voiceAdapterCreator,
+    });
+
+    const audioResource = createAudioResource(station, {
+      inputType: StreamType.Arbitrary,
+    });
+
+    radioQueue.queue.push(audioResource);
+    if (!radioQueue.isPlaying) {
+      radioQueue.isPlaying = true;
+      radioQueue.player.play(radioQueue.queue[0]);
+    }
+
+    connection.subscribe(radioQueue.player);
+
+    await interaction.reply(`Odtwarzam ${station}!`);
+  } catch (error) {
+    console.error("Błąd podczas odtwarzania radia:", error);
+    await interaction.reply({
+      content: "Wystąpił błąd podczas odtwarzania radia.",
+      ephemeral: true,
+    });
   }
-  radioQueue.player.unpause();
-  connection.subscribe(radioQueue.player);
-
-  // console.log(+station);
-  // radioQueue.queue.push(audioResource);
-
-  interaction.reply(`Odtwarzam Radio Kaszëbë!`);
 }
- 
-async function stopRadio(interaction)  {
-  const radioQueue = await interaction.client.radio.get(interaction.guild.id);
-  if (radioQueue.isPlaying)
-    radioQueue.player.pause()
-    // radioQueue.player.stop()
-  interaction.reply(`Wyłączam radio!`);
+
+async function stopRadio(interaction) {
+  try {
+    const radioQueue = interaction.client.radio.get(interaction.guild.id);
+    if (!radioQueue || !radioQueue.isPlaying) {
+      return await interaction.reply({
+        content: "Nie ma aktywnego radia do zatrzymania.",
+        ephemeral: true,
+      });
+    }
+
+    radioQueue.player.stop();
+    radioQueue.isPlaying = false;
+    radioQueue.queue = [];
+
+    await interaction.reply("Wyłączam radio!");
+  } catch (error) {
+    console.error("Błąd podczas zatrzymywania radia:", error);
+    await interaction.reply({
+      content: "Wystąpił błąd podczas zatrzymywania radia.",
+      ephemeral: true,
+    });
+  }
 }

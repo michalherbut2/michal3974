@@ -1,51 +1,50 @@
 const { Events, PermissionFlagsBits } = require("discord.js");
 const sendEmbed = require("../functions/messages/sendEmbed");
-const { PermissionsBitField } = require("discord.js");
 
 module.exports = {
   name: Events.GuildMemberAdd,
-
   once: false,
 
   async execute(member, client) {
-    // add basic roles
     const { guild } = member;
-
-    // hanlde an invite
-    // check bot permission to work with invites (ManageGuild)
+    
+    // Get the client member to check permissions
     const clientMember = guild.members.cache.get(client.user.id);
 
-    if (!clientMember.permissions.has(PermissionFlagsBits.ManageGuild))
-      return console.log(`no permissions to check invites on ${guild}`);
-
-    // find current invite
-    const newInvites = await guild.invites.fetch();
-
-    const oldInvites = client.invites.get(guild.id);
-
-    const invite = newInvites.find(i => i.uses > oldInvites.get(i.code));
-
-    if (!invite) return console.log("I cannot check who joined the server!");
-
-    // find welcom channel
-    const channel = guild.channels.cache.find(c =>
-      c.name.includes("wejście-wyjście")
-    );
+    if (!clientMember.permissions.has(PermissionFlagsBits.ManageGuild)) {
+      console.log(`No permissions to check invites on ${guild.name} (${guild.id})`);
+      return;
+    }
 
     try {
-      if (!channel) throw new Error("There is no channel 'welcome'");
+      // Fetch current invites
+      const newInvites = await guild.invites.fetch();
+      const oldInvites = client.invites.get(guild.id);
 
-      member.channel = channel;
+      // Find the invite that was used
+      const invite = newInvites.find(i => i.uses > (oldInvites.get(i.code)?.uses || 0));
 
+      if (!invite) {
+        console.log("Cannot determine who invited the new member.");
+        return;
+      }
+
+      // Find the welcome channel
+      const channel = guild.channels.cache.find(c => c.name.includes("wejście-wyjście"));
+
+      if (!channel) {
+        throw new Error("There is no channel 'wejście-wyjście'");
+      }
+
+      // Send the welcome message
       const mess = `${invite.inviter} zaprosił ${member} kodem ${invite.code}!`;
+      console.log("Sending welcome message...");
 
-      console.log("przywitanie");
+      await sendEmbed(channel, { description: mess });
 
-      sendEmbed(channel, { description: mess });
-
-      console.log("przywitanie wysłane");
+      console.log("Welcome message sent.");
     } catch (error) {
-      console.error("\x1b[31m%s\x1b[0m", error);
+      console.error("Error handling GuildMemberAdd event:", error);
     }
   },
 };

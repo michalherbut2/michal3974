@@ -6,18 +6,25 @@ module.exports = {
   name: Events.VoiceStateUpdate,
   once: false,
   async execute(oldState, newState, client) {
-    if (newState.member.user.bot) return;
-    // console.log(
-    //   `${newState.member.user.tag} dołączył do kanału głosowego ${newState?.channel?.name}.`
-    // );
+    try {
+      // Ignore bots
+      if (newState.member.user.bot) return;
 
-    // notify moderators unverified user joined in verifacation channel
-    // notifyModerators(newState);
+      console.log(
+        `${newState.member.user.tag} dołączył do kanału głosowego ${newState?.channel?.name}.`
+      );
 
-    // code use to check activity and remove roles
-    // const interval = client.inactivity.get(newState.guild.id);
+      // Notify moderators if an unverified user joins the verification channel
+      // notifyModerators(newState);
 
-    // if (interval && !interval?._destroyed)
-    //   resetUserInactivity(newState.member.user.id, newState.guild.id);
+      // Check activity and remove roles if necessary
+      const interval = client.inactivity.get(newState.guild.id);
+
+      if (interval && !interval?._destroyed) {
+        // resetUserInactivity(newState.member.user.id, newState.guild.id);
+      }
+    } catch (error) {
+      console.error("Error handling VoiceStateUpdate event:", error);
+    }
   },
 };
