@@ -1,10 +1,5 @@
 const { joinVoiceChannel } = require("@discordjs/voice");
-// const {
-//   createSimpleEmbed,
-//   createWarningEmbed,
-// } = require("../../../functions/messages/createEmbed");
 const sendEmbed = require("../../../functions/messages/sendEmbed");
-
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const getResource = require("../../../functions/music/getResource");
 
@@ -13,7 +8,6 @@ module.exports = {
     .setName("play_duzo")
     .setDescription("Gra piosenkę z yt")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
-
     .addStringOption(option =>
       option
         .setName("muzyka")
@@ -25,34 +19,44 @@ module.exports = {
     ),
   async execute(interaction) {
     try {
+      await interaction.deferReply();
+
       const voiceChannel = interaction.member.voice.channel;
+      if (!voiceChannel) {
+        return await interaction.editReply({
+          content: "Musisz być w kanale głosowym, aby użyć tej komendy!",
+          ephemeral: true,
+        });
+      }
+
       const song = interaction.options.getString("muzyka");
       const num = interaction.options.getInteger("ile");
       const serverId = interaction.guild.id;
-      if (!voiceChannel)
-        throw new Error("dołącz do kanału głosowego!")
-        // return interaction.reply({
-        //   embeds: [createWarningEmbed("dołącz do kanału głosowego!")],
-        //   ephemeral: true,
-        // });
 
       const resource = await getResource(song);
       const { title, duration } = resource.metadata;
-      // const t = []
-      // for (let i = 0; i < num; i++)
-      //   t.push(resource)
+
       const voiceConnection = joinVoiceChannel({
         channelId: voiceChannel.id,
         guildId: serverId,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
 
-      const serverQueue = interaction.client.queue.get(serverId);
-      serverQueue.channel = interaction.channel;
+      const serverQueue = interaction.client.queue.get(serverId) || {
+        queue: [],
+        isPlaying: false,
+        player: voiceConnection.state.subscription.player,
+        channel: interaction.channel,
+      };
+
+      // Add the first resource
       serverQueue.queue.push(resource);
+
+      // Add the remaining resources
       setTimeout(async () => {
-        for (let i = 0; i < num - 1; i++)
+        for (let i = 0; i < num - 1; i++) {
           serverQueue.queue.push(await getResource(song));
+        }
       }, 0);
 
       if (!serverQueue.isPlaying) {
@@ -62,20 +66,17 @@ module.exports = {
 
       voiceConnection.subscribe(serverQueue.player);
 
-      const description = `gra gitara **${title}** - \`${duration}\`\n🎵 piosenki w kolejce: ${serverQueue.queue.length}`;
-      sendEmbed(interaction, {description})
+      const description = `Odtwarzam teraz **${title}** - \`${duration}\`\n🎵 Piosenki w kolejce: ${serverQueue.queue.length}`;
+      await sendEmbed(interaction, { description });
 
-      // interaction.reply({
-      //   embeds: [createSimpleEmbed(content)],
-      // });
+      // Save the serverQueue back to the client
+      interaction.client.queue.set(serverId, serverQueue);
     } catch (error) {
       console.error("Problem:", error);
-      sendEmbed(interaction, {description: error.message})
-      // interaction.reply({
-      //   embeds: [
-      //     createWarningEmbed(`Wystąpił błąd podczas odtwarzania muzyki.`),
-      //   ],
-      // });
+      await sendEmbed(interaction, {
+        description: `Wystąpił błąd: ${error.message}`,
+        ephemeral: true,
+      });
     }
   },
 };

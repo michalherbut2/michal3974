@@ -16,24 +16,30 @@ module.exports = {
     try {
       await interaction.deferReply();
 
+      // Ensure the user is in a voice channel
+      const voiceChannel = interaction.member.voice.channel;
+      if (!voiceChannel) {
+        return await interaction.editReply({
+          content: "Musisz być w kanale głosowym, aby użyć tej komendy!",
+          ephemeral: true,
+        });
+      }
+
       const voiceConnection = createVoiceConnection(interaction);
 
       const attachment = interaction.options.getAttachment("plik");
-      console.log(attachment);
 
-      if (
-        !attachment.contentType.startsWith("video/mp4") &&
-        !attachment.contentType.startsWith("audio/")
-      )
+      if (!attachment.contentType.startsWith("audio/") && !attachment.contentType.startsWith("video/mp4")) {
         throw new Error("Proszę załączyć plik audio.");
+      }
 
       const resource = await getResource(attachment);
 
       playMusic(interaction, resource, voiceConnection);
+      await interaction.editReply({ content: `Odtwarzam teraz plik muzyczny: ${attachment.name}` });
     } catch (error) {
       console.error("Problem:", error);
-      sendEmbed(interaction, { description: error.message, ephemeral: true });
+      await sendEmbed(interaction, { description: `Wystąpił błąd: ${error.message}`, ephemeral: true });
     }
   },
 };
-

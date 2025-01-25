@@ -1,14 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { createEmbed } = require("../../../functions/messages/createEmbed");
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("help")
-    .setDescription("Pokazuje komendy!"),
-  async execute(interaction) {
-    await interaction.reply({ embeds: [createEmbed("Komendy", content)] });
-  },
-};
 const content = `### muzyczne:
 **/play** - podaj nazwę z yt lub link
 **/skip** - skipuje aktualną pisoenkę lub o danym numerze
@@ -39,3 +31,24 @@ const content = `### muzyczne:
 **/config** - konfiguruje działanie bota 
 **/sprawdzaj_nieobecnosci** - sprawdza nieobecnośći
 `;
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName("help")
+    .setDescription("Pokazuje komendy!"),
+  
+  async execute(interaction) {
+    try {
+      const embed = createEmbed("Komendy", content);
+      await interaction.reply({ embeds: [embed] });
+    } catch (error) {
+      console.error("Error executing help command:", error);
+
+      // Send an error message to the user
+      await interaction.reply({
+        content: `Wystąpił błąd przy wykonywaniu polecenia: ${error.message}`,
+        ephemeral: true,
+      });
+    }
+  },
+};

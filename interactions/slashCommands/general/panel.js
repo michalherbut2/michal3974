@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,47 +7,45 @@ module.exports = {
     // .setDefaultPermission(false), // Ustawienie uprawnień komendy, możesz to dostosować według potrzeb
 
   async execute(interaction) {
-    const row = [
-      {
-        type: 1, // Typ 1 oznacza przycisk
-        components: [
-          {
-            type: 2,
-            style: 1,
-            label: "Pauza",
-            custom_id: "pause",
-            emoji: "⏸️", // Dodaj emoji do przycisku
-          },
-          {
-            type: 2, // Typ 2 oznacza przycisk interakcji
-            style: 1, // Styl 1 to PRIMARY
-            label: "Odpałzuj",
-            custom_id: "unpause",
-            emoji: "▶️",
-          },
+    try {
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId("pause")
+            .setLabel("Pauza")
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji("⏸️"),
+          
+          new ButtonBuilder()
+            .setCustomId("unpause")
+            .setLabel("Odpałzuj")
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji("▶️"),
 
-          {
-            type: 2,
-            style: 1,
-            label: "Następna Piosenka",
-            custom_id: "skip",
-            emoji: "⏭️",
-          },
-          {
-            type: 2,
-            style: 1,
-            label: "Usuń Wszystko",
-            custom_id: "stop",
-            emoji: "⏹️",
-          },
-        ],
-      },
-    ];
+          new ButtonBuilder()
+            .setCustomId("skip")
+            .setLabel("Następna Piosenka")
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji("⏭️"),
 
-    await interaction.reply({
-      content: "Odtwarzacz piosenek",
-      components: row,
-      ephemeral: true
-    });
+          new ButtonBuilder()
+            .setCustomId("stop")
+            .setLabel("Usuń Wszystko")
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji("⏹️")
+        );
+
+      await interaction.reply({
+        content: "Odtwarzacz piosenek",
+        components: [row],
+        ephemeral: true,
+      });
+    } catch (error) {
+      console.error("Error executing panel command:", error);
+      await interaction.reply({
+        content: `Wystąpił błąd przy wykonywaniu polecenia: ${error.message}`,
+        ephemeral: true,
+      });
+    }
   },
 };

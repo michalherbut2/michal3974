@@ -12,72 +12,64 @@ module.exports = {
     .addSubcommand(subcommand =>
       subcommand
         .setName("ustaw")
-        .setDescription("zastąpi starą konfigurację przez nodo podane dane")
+        .setDescription("Zastępuje starą konfigurację przez nowo podane dane")
         .addRoleOption(option =>
           option
             .setName("rola_za_1_ostrzerzenie")
-            .setDescription("rola za 1 ostrzerzenie")
+            .setDescription("Rola za 1 ostrzerzenie")
             .setRequired(true)
         )
         .addRoleOption(option =>
           option
             .setName("rola_za_2_ostrzerzenie")
-            .setDescription("rola za 2 ostrzerzenie")
+            .setDescription("Rola za 2 ostrzerzenie")
             .setRequired(true)
         )
         .addRoleOption(option =>
           option
             .setName("rola_za_3_ostrzerzenie")
-            .setDescription("rola za 3 ostrzerzenie")
+            .setDescription("Rola za 3 ostrzerzenie")
             .setRequired(true)
         )
         .addRoleOption(option =>
           option
             .setName("rola_zakaz_pisania")
-            .setDescription(
-              "rola, która nie pozwala pisać na kanałach tekstowych"
-            )
+            .setDescription("Rola, która nie pozwala pisać na kanałach tekstowych")
             .setRequired(true)
         )
         .addRoleOption(option =>
           option
             .setName("rola_zakaz_gadania")
-            .setDescription(
-              "rola, która nie pozwala gadać na kanałach głosowych"
-            )
+            .setDescription("Rola, która nie pozwala gadać na kanałach głosowych")
             .setRequired(true)
         )
         .addChannelOption(option =>
           option
             .setName("kanal_do_komend")
-            .setDescription("kanał tekstowy do pisania komend")
+            .setDescription("Kanał tekstowy do pisania komend")
             .setRequired(true)
         )
         .addChannelOption(option =>
           option
             .setName("kanal_do_kar")
-            .setDescription(
-              "kanał tekstowy do powiadamiania o banach czy przerwach"
-            )
+            .setDescription("Kanał tekstowy do powiadamiania o banach czy przerwach")
             .setRequired(true)
         )
         .addRoleOption(option =>
           option
             .setName("aktywna_rola")
-            .setDescription(
-              "rola, która zostanie zabrana po tygodniu nieobecności"
-            )
+            .setDescription("Rola, która zostanie zabrana po tygodniu nieobecności")
             .setRequired(true)
         )
         .addRoleOption(option =>
           option
             .setName("rola_za_punkty")
-            .setDescription("rola, która zostanie nadaza za 10 punktów")
+            .setDescription("Rola, która zostanie nadana za 10 punktów")
             .setRequired(true)
         )
     )
     .addSubcommand(subcommand =>
-      subcommand.setName("zmien").setDescription("zmienia jedną opcję")
+      subcommand.setName("zmien").setDescription("Zmienia jedną opcję")
         .addStringOption(option =>
           option
             .setName("opcja")
@@ -98,22 +90,29 @@ module.exports = {
         .addRoleOption(option =>
           option
             .setName("nowa_rola")
-            .setDescription("nowa rola do przypisania")
+            .setDescription("Nowa rola do przypisania")
             .setRequired(false)
         )
         .addChannelOption(option =>
           option
             .setName("nowy_kanal")
-            .setDescription("nowy kanał do przypisania")
+            .setDescription("Nowy kanał do przypisania")
             .setRequired(false)
         )
     )
     .addSubcommand(subcommand =>
-      subcommand.setName("poka").setDescription("pokazuje konfigurację")
+      subcommand.setName("poka").setDescription("Pokazuje konfigurację")
     ),
   async execute(interaction) {
     const guildId = interaction.guild.id;
     const db = new betterSqlite3(`db/db_${guildId}.db`);
+
+    // Ensure the config table exists
+    db.prepare(`CREATE TABLE IF NOT EXISTS config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )`).run();
+
     const subcommand = interaction.options.getSubcommand();
 
     try {
@@ -131,10 +130,11 @@ module.exports = {
           break;
       }
     } catch (error) {
-      console.error(error);
-      replyWarningEmbed(interaction, error.message);
+      console.error("Error executing config command:", error);
+      await sendErrorEmbed(interaction, error.message);
+    } finally {
+      db.close();
     }
-    db.close();
   },
 };
 
@@ -148,52 +148,62 @@ async function updateSettings(interaction, db) {
   const logChannel = interaction.options.getChannel("kanal_do_kar");
   const activeRole = interaction.options.getRole("aktywna_rola");
   const pointRole = interaction.options.getRole("rola_za_punkty");
-  // console.log(commandChannel.id);
-  const updateQuery =
-    "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)";
-  db.prepare(updateQuery).run("rola_za_1_ostrzerzenie", warnRole1.id);
-  db.prepare(updateQuery).run("rola_za_2_ostrzerzenie", warnRole2.id);
-  db.prepare(updateQuery).run("rola_za_3_ostrzerzenie", warnRole3.id);
-  db.prepare(updateQuery).run("rola_zakaz_pisania", writingBanRole.id);
-  db.prepare(updateQuery).run("rola_zakaz_gadania", speakingBanRole.id);
-  db.prepare(updateQuery).run("kanal_do_komend", commandChannel.id);
-  db.prepare(updateQuery).run("kanal_do_kar", logChannel.id);
-  db.prepare(updateQuery).run("aktywna_rola", activeRole.id);
-  db.prepare(updateQuery).run("rola_za_punkty", pointRole.id);
+
+  const updateQuery = "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)";
+  const stmt = db.prepare(updateQuery);
+
+  db.transaction(() => {
+    stmt.run("rola_za_1_ostrzerzenie", warnRole1.id);
+    stmt.run("rola_za_2_ostrzerzenie", warnRole2.id);
+    stmt.run("rola_za_3_ostrzerzenie", warnRole3.id);
+    stmt.run("rola_zakaz_pisania", writingBanRole.id);
+    stmt.run("rola_zakaz_gadania", speakingBanRole.id);
+    stmt.run("kanal_do_komend", commandChannel.id);
+    stmt.run("kanal_do_kar", logChannel.id);
+    stmt.run("aktywna_rola", activeRole.id);
+    stmt.run("rola_za_punkty", pointRole.id);
+  })();
+
   loadConfig(interaction.client);
 }
 
 async function updateSingleSetting(interaction, db) {
   const option = interaction.options.getString("opcja");
-  let newRole;
-  let newChannel;
+  const newRole = interaction.options.getRole("nowa_rola");
+  const newChannel = interaction.options.getChannel("nowy_kanal");
 
-  if (interaction.options.getRole("nowa_rola")) {
-    newRole = interaction.options.getRole("nowa_rola");
-  }
-
-  if (interaction.options.getChannel("nowy_kanal")) {
-    newChannel = interaction.options.getChannel("nowy_kanal");
-  }
-
-  const updateQuery =
-    "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)";
-  
-  if (newRole) {
-    db.prepare(updateQuery).run(option, newRole.id);
-  } else if (newChannel) {
-    db.prepare(updateQuery).run(option, newChannel.id);
-  } else {
+  if (!newRole && !newChannel) {
     throw new Error("Nie podano żadnej nowej roli ani kanału.");
+  }
+
+  const updateQuery = "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)";
+  const stmt = db.prepare(updateQuery);
+
+  if (newRole) {
+    stmt.run(option, newRole.id);
+  } else if (newChannel) {
+    stmt.run(option, newChannel.id);
   }
 }
 
 async function showSettings(interaction, db) {
   const config = await getConfig(db);
   let description = "";
-  for (const key in config)
+  for (const key in config) {
     description += `${key}: <${key.match(/rola/) ? "@&" : "#"}${config[key]}>\n`;
-  
-  if (!description) description = "Nie skonfigurowano bota, wpisz: `/config ustaw`"
-  sendEmbed(interaction, { title: "Konfiguracja bota", description });
+  }
+
+  if (!description) {
+    description = "Nie skonfigurowano bota, wpisz: `/config ustaw`";
+  }
+
+  await sendEmbed(interaction, { title: "Konfiguracja bota", description });
+}
+
+async function sendErrorEmbed(interaction, errorMessage) {
+  await sendEmbed(interaction, {
+    description: `Wystąpił błąd: ${errorMessage}`,
+    ephemeral: true,
+    color: "red",
+  });
 }

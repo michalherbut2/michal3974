@@ -6,19 +6,36 @@ module.exports = {
   name: Events.GuildAuditLogEntryCreate,
   once: false,
   async execute(auditLog, guild, client) {
-    // console.log(auditLog);
+    try {
+      // Ensure auditLog and action are defined
+      if (!auditLog || !auditLog.action) {
+        throw new Error("Invalid audit log entry");
+      }
 
-    switch (auditLog.action) {
-      case AuditLogEvent.MemberBanAdd:
-        logBan(auditLog, guild);
-        break;
+      // Handle different audit log events
+      switch (auditLog.action) {
+        case AuditLogEvent.MemberBanAdd:
+          try {
+            await logBan(auditLog, guild);
+          } catch (error) {
+            console.error("Error logging ban:", error);
+          }
+          break;
 
-      case AuditLogEvent.MemberUpdate:
-        logTimeout(auditLog, guild, client);
-        break;
+        case AuditLogEvent.MemberUpdate:
+          try {
+            await logTimeout(auditLog, guild, client);
+          } catch (error) {
+            console.error("Error logging timeout:", error);
+          }
+          break;
 
-      default:
-        break;
+        default:
+          console.log(`Unhandled audit log action: ${auditLog.action}`);
+          break;
+      }
+    } catch (error) {
+      console.error("Error processing audit log entry:", error);
     }
   },
 };

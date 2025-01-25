@@ -11,125 +11,133 @@ module.exports = {
     .setName("vote")
     .setDescription("zrób głosowanie")
     .addStringOption(option =>
-      option.setName("opis").setDescription("co głosujemy")
+      option.setName("opis").setDescription("co głosujemy").setRequired(true)
     )
-    .addStringOption(option => option.setName("za").setDescription("tekst za"))
+    .addStringOption(option => 
+      option.setName("za").setDescription("tekst za").setRequired(false)
+    )
     .addStringOption(option =>
-      option.setName("przeciw").setDescription("tekst przeciw")
-  )
-  .addStringOption(option =>
-    option.setName("czas").setDescription("jak długo np. 1s, 2m, 3h, 4d")
-  ),
+      option.setName("przeciw").setDescription("tekst przeciw").setRequired(false)
+    )
+    .addStringOption(option => 
+      option.setName("czas").setDescription("jak długo np. 1s, 2m, 3h, 4d").setRequired(false)
+    ),
 
   async execute(interaction) {
-    const startTime = Date.now()
-    const description = interaction.options.getString("opis");
-    const pro = interaction.options.getString("za") || "za";
-    const opp = interaction.options.getString("przeciw") || "przeciw";
-    const time = parseTimeToSeconds(interaction.options.getString("czas") || '1m');
-    const endTime = parseInt(startTime / 1000) + time
-    // Create buttons for proponents and opponents
-    const proponentButton = new ButtonBuilder()
-      .setCustomId("proponent")
-      .setLabel(pro)
-      .setEmoji('😎')
-      .setStyle(ButtonStyle.Success);
+    try {
+      const startTime = Date.now();
+      const description = interaction.options.getString("opis");
+      const pro = interaction.options.getString("za") || "za";
+      const opp = interaction.options.getString("przeciw") || "przeciw";
+      const time = parseTimeToSeconds(interaction.options.getString("czas") || '1m');
+      const endTime = parseInt(startTime / 1000) + time;
+
+      // Create buttons for proponents and opponents
+      const proponentButton = new ButtonBuilder()
+        .setCustomId("proponent")
+        .setLabel(pro)
+        .setEmoji('😎')
+        .setStyle(ButtonStyle.Success);
       
       const opponentButton = new ButtonBuilder()
-      .setCustomId("opponent")
-      .setLabel(opp)
-      .setEmoji('🔥')
-      .setStyle(ButtonStyle.Danger);
+        .setCustomId("opponent")
+        .setLabel(opp)
+        .setEmoji('🔥')
+        .setStyle(ButtonStyle.Danger);
 
-    // Create a row with the buttons
-    const row = new ActionRowBuilder().addComponents(
-      proponentButton,
-      opponentButton
-    );
+      // Create a row with the buttons
+      const row = new ActionRowBuilder().addComponents(
+        proponentButton,
+        opponentButton
+      );
 
-    // Variables to store vote counts
-    let proponents = { name: pro, value: "0", inline: true };
-    let opponents = { name: opp, value: "0", inline: true };
+      // Variables to store vote counts
+      let proponents = { name: pro, value: "0", inline: true };
+      let opponents = { name: opp, value: "0", inline: true };
 
-    // Set to store user IDs who have voted
-    // const votedUsers = new Set();
-    const userVotes = new Map();
+      // Map to store user votes
+      const userVotes = new Map();
 
-    // Send the initial message with buttons and embed
-    const votingEmbed = new EmbedBuilder()
-      .setColor("#3498db")
-      .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
-      .setDescription(description)
-      .addFields(proponents, opponents);
-
-    // Send the initial message with buttons and embed
-    const message = await interaction.reply({
-      embeds: [votingEmbed],
-      components: [row],
-    });
-
-    // Create a collector for button clicks
-    const collector = message.createMessageComponentCollector({
-      // filter,
-      time: time * 1000, // 60 seconds voting time
-    });
-
-    // Listen for button clicks
-    collector.on("collect", i => {
-      i.deferUpdate()
-      const userId = i.user.id;
-
-      // Check if the user has voted before
-      if (userVotes.has(userId)) {
-        // If the user has voted, toggle their vote
-        if (i.customId === 'proponent' && userVotes.get(userId) === 'opponent') {
-          proponents.value = (++proponents.value).toString();
-          opponents.value = (--opponents.value).toString();
-          userVotes.set(userId, 'proponent');
-        } else if (i.customId === 'opponent' && userVotes.get(userId) === 'proponent') {
-          proponents.value = (--proponents.value).toString();
-          opponents.value = (++opponents.value).toString();
-          userVotes.set(userId, 'opponent');
-        }
-      } else {
-        // If the user has not voted, record their vote
-        if (i.customId === 'proponent') {
-          proponents.value = (++proponents.value).toString();
-          userVotes.set(userId, 'proponent');
-        } else if (i.customId === 'opponent') {
-          opponents.value = (++opponents.value).toString();
-          userVotes.set(userId, 'opponent');
-        }
-      }
-
-      // Update the embed with real-time vote counts
+      // Send the initial message with buttons and embed
       const votingEmbed = new EmbedBuilder()
         .setColor("#3498db")
         .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
         .setDescription(description)
         .addFields(proponents, opponents);
 
-      // Edit the original message with updated embed
-      message.edit({
+      const message = await interaction.reply({
         embeds: [votingEmbed],
         components: [row],
       });
-    });
 
-    // Listen for the end of the voting session
-    collector.on("end", collected => {
-      // Display the final results
-      const votingEmbed = new EmbedBuilder()
-        .setColor("#3498db")
-        .setTitle(`Plebiscyt zakończony!`)
-        .setDescription(description)
-        .addFields(proponents, opponents);
-      message.edit({
-        embeds: [votingEmbed],
-        components: [],
+      // Create a collector for button clicks
+      const collector = message.createMessageComponentCollector({
+        time: time * 1000,
       });
-      console.log(collected);
-    });
+
+      // Listen for button clicks
+      collector.on("collect", async i => {
+        await i.deferUpdate();
+        const userId = i.user.id;
+
+        // Check if the user has voted before
+        if (userVotes.has(userId)) {
+          // If the user has voted, toggle their vote
+          if (i.customId === 'proponent' && userVotes.get(userId) === 'opponent') {
+            proponents.value = (++proponents.value).toString();
+            opponents.value = (--opponents.value).toString();
+            userVotes.set(userId, 'proponent');
+          } else if (i.customId === 'opponent' && userVotes.get(userId) === 'proponent') {
+            proponents.value = (--proponents.value).toString();
+            opponents.value = (++opponents.value).toString();
+            userVotes.set(userId, 'opponent');
+          }
+        } else {
+          // If the user has not voted, record their vote
+          if (i.customId === 'proponent') {
+            proponents.value = (++proponents.value).toString();
+            userVotes.set(userId, 'proponent');
+          } else if (i.customId === 'opponent') {
+            opponents.value = (++opponents.value).toString();
+            userVotes.set(userId, 'opponent');
+          }
+        }
+
+        // Update the embed with real-time vote counts
+        const updatedEmbed = new EmbedBuilder()
+          .setColor("#3498db")
+          .setTitle(`Plebiscyt kończy się <t:${endTime}:R>`)
+          .setDescription(description)
+          .addFields(proponents, opponents);
+
+        // Edit the original message with updated embed
+        await message.edit({
+          embeds: [updatedEmbed],
+          components: [row],
+        });
+      });
+
+      // Listen for the end of the voting session
+      collector.on("end", () => {
+        // Display the final results
+        const finalEmbed = new EmbedBuilder()
+          .setColor("#3498db")
+          .setTitle(`Plebiscyt zakończony!`)
+          .setDescription(description)
+          .addFields(proponents, opponents);
+
+        message.edit({
+          embeds: [finalEmbed],
+          components: [],
+        });
+      });
+    } catch (error) {
+      console.error("Błąd podczas wykonywania komendy 'vote':", error);
+      await interaction.reply({
+        content: "Wystąpił błąd podczas tworzenia głosowania!",
+        ephemeral: true,
+      });
+    }
   },
 };
 

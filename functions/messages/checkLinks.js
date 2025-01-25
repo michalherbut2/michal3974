@@ -1,41 +1,53 @@
 module.exports = async (message) => {
-  // Sprawdź, czy autor wiadomości to nie bot i wiadomość nie jest z kanału DM
-  if (message.author.bot || message.channel.type === 'DM') return;
+  try {
+    // Check if the author of the message is a bot or if the message is from a DM channel
+    if (message.author.bot || message.channel.type === 'DM') return;
 
-  // Sprawdź, czy wiadomość zawiera link
-  if (message.content.includes('http://') || message.content.includes('https://')) {
-    // Wyślij wiadomość do kanału komendy w celu potwierdzenia
-    message.delete()
-    const confirmationMessage = await message.channel.send(`Czy na pewno chcesz wysłać linka? Odpowiedz na tę wiadomość \`Tak\` lub \`Nie\`.`);
+    // Check if the message contains a link
+    if (message.content.includes('http://') || message.content.includes('https://')) {
+      // Delete the original message containing the link
+      await message.delete();
 
-    // Ustaw kolektor reakcji, aby zareagować na odpowiedzi adminów
-    const filter = reaction => '👍👎'.includes(reaction.emoji.name);
-    const collector = confirmationMessage.createReactionCollector({ filter, time: 300_000, dispose: true });
-    
-    // Dodaj reakcje do wiadomości
-    await confirmationMessage.react('👍');
-    await confirmationMessage.react('👎');
+      // Send a confirmation message to the channel
+      const confirmationMessage = await message.channel.send(
+        `Czy na pewno chcesz wysłać linka? Odpowiedz na tę wiadomość \`Tak\` lub \`Nie\`.`
+      );
 
-    // Czekaj na odpowiedź admina
-    collector.once('collect', async (reaction) => {
-      if (reaction.emoji.name === '👍') {
-        // Admin zatwierdził, nie rób nic
-        // await message.delete();
-        await confirmationMessage.delete();
-        await message.channel.send(message.content);
-      } else {
-        // Admin odrzucił, usuń wiadomość z potwierdzeniem
-        await confirmationMessage.delete();
-        await message.channel.send(`nie`);
-      }
-    });
+      // Define the filter for the reaction collector
+      const filter = (reaction, user) => {
+        return ['👍', '👎'].includes(reaction.emoji.name) && !user.bot;
+      };
 
-    // Czekaj na zakończenie kolektora
-    collector.once('end', (collected, reason) => {
-      if (reason === 'time') {
-        // Kolektor zakończył się z powodu przekroczenia czasu, usuń wiadomość z potwierdzeniem
-        confirmationMessage.delete();
-      }
-    });
+      // Create the reaction collector
+      const collector = confirmationMessage.createReactionCollector({ filter, time: 300000, dispose: true });
+
+      // Add reactions to the confirmation message
+      await confirmationMessage.react('👍');
+      await confirmationMessage.react('👎');
+
+      // Wait for admin's reaction
+      collector.once('collect', async (reaction) => {
+        if (reaction.emoji.name === '👍') {
+          // Admin approved, send the original message content
+          await confirmationMessage.delete();
+          await message.channel.send(message.content);
+        } else {
+          // Admin rejected, delete the confirmation message
+          await confirmationMessage.delete();
+          await message.channel.send('Link został odrzucony.');
+        }
+      });
+
+      // Handle the end of the collector
+      collector.once('end', async (collected, reason) => {
+        if (reason === 'time') {
+          // The collector ended due to timeout, delete the confirmation message
+          await confirmationMessage.delete();
+          message.channel.send('Czas na odpowiedź minął. Link nie został wysłany.');
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error handling message:', error);
   }
-}
+};

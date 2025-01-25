@@ -3,7 +3,6 @@ const getResource = require("../../../functions/music/getResource");
 const createVoiceConnection = require("../../../functions/music/createVoiceConnection");
 const playMusic = require("../../../functions/music/playMusic");
 const sendEmbed = require("../../../functions/messages/sendEmbed");
-const getResourceOld = require("../../../functions/music/getResourceOld");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -19,17 +18,34 @@ module.exports = {
     try {
       await interaction.deferReply();
 
-      const voiceConnection = createVoiceConnection(interaction);
-
       const song = interaction.options.getString("muzyka");
 
+      // Ensure the user is in a voice channel
+      const voiceChannel = interaction.member.voice.channel;
+      if (!voiceChannel) {
+        return await interaction.editReply({
+          content: "Musisz być w kanale głosowym, aby użyć tej komendy!",
+          ephemeral: true,
+        });
+      }
+
+      // Create a voice connection
+      const voiceConnection = createVoiceConnection(interaction);
+
+      // Get the audio resource
       const audioResource = await getResource(song);
-      // const audioResource = await getResourceOld(song);
-      // console.log("audioResource", audioResource);
+
+      // Play the music
       playMusic(interaction, audioResource, voiceConnection);
+
+      await interaction.editReply({ content: `Odtwarzam teraz: ${song}` });
     } catch (error) {
       console.error("Problem:", error);
-      sendEmbed(interaction, {description: error.message, ephemeral: true})
+      await interaction.editReply({
+        content: "Wystąpił błąd podczas próby odtworzenia muzyki.",
+        embeds: [createWarningEmbed(error.message)],
+        ephemeral: true,
+      });
     }
   },
 };

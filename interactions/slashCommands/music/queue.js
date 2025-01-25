@@ -7,24 +7,32 @@ module.exports = {
     .setDescription("Pokazuje listę piosenek do zagrania"),
 
   async execute(interaction) {
-    const { client } = interaction;
-    const queue = client.queue.get(interaction.guild.id).queue;
+    try {
+      const { client } = interaction;
+      const serverQueue = client.queue.get(interaction.guild.id);
 
-    if (!queue.length)
-      sendEmbed(interaction, {
-        description: "Ludzie, tu niczego nie ma!",
+      if (!serverQueue || !serverQueue.queue.length) {
+        await sendEmbed(interaction, {
+          description: "Ludzie, tu niczego nie ma!",
+        });
+      } else {
+        const description = `## Kolejka:\n${serverQueue.queue
+          .map(
+            (song, id) =>
+              `**${id === 0 ? "Gram" : id}**: ${song.metadata.title} - \`${
+                song.metadata.duration
+              }\``
+          )
+          .join("\n")}`;
+        
+        await sendEmbed(interaction, { description });
+      }
+    } catch (error) {
+      console.error("Błąd podczas wykonywania komendy 'queue':", error);
+      await sendEmbed(interaction, {
+        description: "Wystąpił błąd podczas wyświetlania kolejki piosenek.",
+        ephemeral: true,
       });
-    else {
-      const description = `## Kolejka:\n${queue
-        .map(
-          (song, id) =>
-            `**${id ? id : "Gram"}**: ${song.metadata.title} - \`${
-              song.metadata.duration
-            }\``
-        )
-        .join("\n")}`;
-
-      sendEmbed(interaction, { description });
     }
   },
 };

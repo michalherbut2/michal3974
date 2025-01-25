@@ -12,54 +12,39 @@ module.exports = {
     .setDescription("Returns embed"),
 
   async execute(interaction) {
-    const modal = new ModalBuilder()
-      .setCustomId("embed")
-      .setTitle("Strwórz embed");
+    try {
+      // Create a modal
+      const modal = new ModalBuilder()
+        .setCustomId("embed")
+        .setTitle("Stwórz embed");
 
-    const inputs = [];
-    // // Add components to modal
-    // inputs.push(
-    //   new TextInputBuilder()
-    //     .setCustomId("custom")
-    //     .setLabel("Napisz cos ciekawe bo bot placze")
-
-    //     // Short means only a single line of text
-    //     .setStyle(TextInputStyle.Paragraph)
-    //     // set the maximum number of characters to allow
-    //     .setMaxLength(1_000)
-    //     // set the minimum number of characters required for submission
-    //     .setMinLength(10)
-    //     // set a placeholder string to prompt the user
-    //     .setPlaceholder("Enter some text!")
-    //     // set a default value to pre-fill the input
-    //     .setValue("Default siemaskdlasf")
-    //     // require a value in this input field
-    //     .setRequired(true)
-    // );
-
-    // Create the text input components
-    // inputs
-    inputs.push(
-      new TextInputBuilder()
+      // Create the text input components
+      const titleInput = new TextInputBuilder()
         .setCustomId("title")
         .setLabel("Tytuł embeda [może być pusty]")
         .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-    );
+        .setRequired(false);
 
-    inputs.push(
-      new TextInputBuilder()
+      const descriptionInput = new TextInputBuilder()
         .setCustomId("description")
         .setLabel("Zawartość embeda")
         .setStyle(TextInputStyle.Paragraph)
-    );
+        .setRequired(true);
 
-    // Add inputs to the modal
-    modal.addComponents(
-      inputs.map(input => new ActionRowBuilder().addComponents(input))
-    );
+      // Add inputs to the modal
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(titleInput),
+        new ActionRowBuilder().addComponents(descriptionInput)
+      );
 
-    // Show the modal to the user
-    await interaction.showModal(modal);
+      // Show the modal to the user
+      await interaction.showModal(modal);
+    } catch (error) {
+      console.error("Błąd podczas tworzenia modala:", error);
+      await interaction.reply({
+        content: "Wystąpił błąd podczas tworzenia modala.",
+        ephemeral: true,
+      });
+    }
   },
 };

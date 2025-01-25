@@ -9,65 +9,72 @@ module.exports = {
   name: "ready",
   once: true,
   async execute(client) {
-    console.log(
-      `${client.user.username} is online on ${client.guilds.cache.size} servers!`
-    );
-
-    // updateStats(client);
-
-    // Set initial presence
-    updatePresence(client);
-
-    // Set interval to update presence every 1 minute
-    setInterval(() => {
-      updatePresence(client);
-    }, 60000); // 1 minute in milliseconds
-
-    createDatabases(client);
-    createAudioPlayers(client);
-    await loadConfig(client);
-
-    // console.log();
-    // const slash = client.slashCommands.map(k => k.data);
-    // const menu = client.contextMenus.map(k => k.data);
-    //   const array = [...slash, ...menu];
-    //   console.log(array.length);
-    //   await client.application.commands.set(array);
-    //   console.log("siema");
-
-    // invites
-    client.guilds.cache.forEach(async guild => {
-      const clientMember = guild.members.cache.get(client.user.id);
-
-      if (!clientMember.permissions.has(PermissionsBitField.Flags.ManageGuild))
-        return console.log(`no permissions to check invites in ${guild.name}`);
-
-      const firstInvates = await guild.invites.fetch();
-
-      client.invites.set(
-        guild.id,
-        new Collection(firstInvates.map(invite => [invite.code, invite.uses]))
+    try {
+      console.log(
+        `${client.user.username} is online on ${client.guilds.cache.size} servers!`
       );
-    });
-    console.log("git");
+
+      // Update stats
+      await updateStats(client);
+
+      // Set initial presence
+      updatePresence(client);
+
+      // Set interval to update presence every 1 minute
+      setInterval(() => {
+        updatePresence(client);
+      }, 60000); // 1 minute in milliseconds
+
+      // Initialize databases, audio players and load configurations
+      await createDatabases(client);
+      createAudioPlayers(client);
+      await loadConfig(client);
+
+      // Fetch and store invites for each guild
+      client.guilds.cache.forEach(async (guild) => {
+        try {
+          const clientMember = guild.members.cache.get(client.user.id);
+
+          if (!clientMember.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+            console.log(`No permissions to check invites in ${guild.name}`);
+            return;
+          }
+
+          const firstInvites = await guild.invites.fetch();
+          client.invites.set(
+            guild.id,
+            new Collection(firstInvites.map((invite) => [invite.code, invite.uses]))
+          );
+        } catch (error) {
+          console.error(`Failed to fetch invites for guild ${guild.name}:`, error);
+        }
+      });
+
+      console.log("Initialization complete.");
+    } catch (error) {
+      console.error("Error during client initialization:", error);
+    }
   },
 };
 
 function updatePresence(client) {
-  const activities = [
-    { name: "Gram w Twierdzę!" },
-    { name: `Mój ping: ${client.ws.ping}ms` },
-    { name: `Jestem na ${client.guilds.cache.size} serwerach!` },
-    { name: `Pracuję bez przerwy: ${formatUptime(client.uptime)}` },
-    { name: "Jak pogoda?" },
-  ];
+  try {
+    const activities = [
+      { name: "Gram w Twierdzę!" },
+      { name: `Mój ping: ${client.ws.ping}ms` },
+      { name: `Jestem na ${client.guilds.cache.size} serwerach!` },
+      { name: `Pracuję bez przerwy: ${formatUptime(client.uptime)}` },
+      { name: "Jak pogoda?" },
+    ];
 
-  const randomActivity =
-    activities[Math.floor(Math.random() * activities.length)];
+    const randomActivity = activities[Math.floor(Math.random() * activities.length)];
 
-  client.user.setPresence({
-    activities: [randomActivity],
-  });
+    client.user.setPresence({
+      activities: [randomActivity],
+    });
+  } catch (error) {
+    console.error("Error updating presence:", error);
+  }
 }
 
 function formatUptime(uptime) {
