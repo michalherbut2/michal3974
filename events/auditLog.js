@@ -6,7 +6,6 @@ module.exports = {
   name: Events.GuildAuditLogEntryCreate,
   once: false,
   async execute(auditLog, guild, client) {
-    // console.log(auditLog);
 
     switch (auditLog.action) {
       case AuditLogEvent.MemberBanAdd:

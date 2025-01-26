@@ -6,7 +6,7 @@ module.exports = {
   name: Events.VoiceStateUpdate,
   once: false,
   async execute(oldState, newState, client) {
-    if (newState.member.user.bot) return;
+    // if (newState.member.user.bot) return;
     // console.log(
     //   `${newState.member.user.tag} dołączył do kanału głosowego ${newState?.channel?.name}.`
     // );

@@ -1,9 +1,9 @@
 const { PermissionsBitField, Collection } = require("discord.js");
-const checkInactivity = require("../functions/time/checkInactivity");
+// const checkInactivity = require("../functions/time/checkInactivity");
+// const updateStats = require("../functions/messages/updateStats");
 const createAudioPlayers = require("../functions/music/createAudioPlayers");
 const createDatabases = require("../functions/settings/createDatabases");
 const loadConfig = require("../functions/settings/loadConfig");
-const updateStats = require("../functions/messages/updateStats");
 
 module.exports = {
   name: "ready",

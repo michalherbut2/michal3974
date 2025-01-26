@@ -10,18 +10,33 @@ module.exports = async (auditLog, guild, client) => {
   // Check only for kicked users.
   if (changes[0]?.key !== "communication_disabled_until") return;
 
+  // remove extra spaces between words
+  cleanReason = reason?.replace(/\s+/g, ' ').trim();
+
   // create a messages
   const addTimeoutMessage = `<@${targetId}> w końcu dostał przerwę od <@${executorId}> na <t:${parseInt(
     new Date(changes[0].new).getTime() / 1000
-  )}:R> za **${reason?.trim() ?? "darmo"}**.`;
+  )}:R> za **${cleanReason?.trim() ?? "darmo"}**.`;
 
   const removeTimeoutMessage = `<@${executorId}> niestety, jak zbój, pozbawił Czcigodnego <@${targetId}> jego zasłużonej przerwy.`;
 
   // choose the message
-  const description = changes[0].new ? addTimeoutMessage : removeTimeoutMessage;
+  // const description = changes[0].new ? addTimeoutMessage : removeTimeoutMessage;
+  // const color = changes[0].new ? "red" : "yellow";
+  
+  const options = {
+    true: { description: addTimeoutMessage, color: "red" },
+    false: { description: removeTimeoutMessage, color: "yellow" },
+  };
+  
+  // const { description, color } = options[changes[0].new];
 
   const channel = guild.channels.cache.find(ch => ch.name.includes("bany"));
-
+  // console.log(changes[0].new);
+  
+  // console.log(options[!!changes[0].new]);
+  
   // Now you can log the output!
-  sendEmbed(channel, { description, color: "red" });
+  // sendEmbed(channel, { description, color });
+  sendEmbed(channel, options[!!changes[0].new]);
 };
