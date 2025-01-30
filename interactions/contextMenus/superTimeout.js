@@ -1,13 +1,16 @@
 const {
   ContextMenuCommandBuilder,
   ApplicationCommandType,
+  PermissionFlagsBits
 } = require("discord.js");
 const sendEmbed = require("../../functions/messages/sendEmbed");
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
     .setName("Super przerwa")
-    .setType(ApplicationCommandType.User),
+    .setType(ApplicationCommandType.User)
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+  ,
 
   async execute(interaction) {
     const { targetId, guild } = interaction;
@@ -22,7 +25,9 @@ module.exports = {
     } catch (error) {
       console.error(error);
       sendEmbed(interaction, {
-        description: `${member} niestety nie dostał elegancką przerwę na 28 dni`,
+        // description: `${member} niestety nie dostał elegancką przerwę na 28 dni`,
+        description: `Błąd: ${error.message}`,
+        color: "red"
       });
     }
   },

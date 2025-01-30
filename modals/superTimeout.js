@@ -5,10 +5,13 @@ module.exports = {
 
   async execute(interaction) {
     const { fields } = interaction;
-
+    console.log(fields);
+    
     const confirm = fields.getTextInputValue("confirm");
     const reason = fields.getTextInputValue("reason");
-
+    console.log(confirm, reason);
+    console.log("siema kto pl");
+    
     if (confirm.toLowerCase() === "tak") {
       member.timeout(28 * 24 * 60 * 60 * 1000, reason); // 28 days
       // await interaction.reply({ embeds: [createEmbed("Komendy", content)] });
