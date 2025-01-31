@@ -12,7 +12,7 @@ module.exports = {
 
       const embed = {
         color: 0x0099ff,
-        title: 'Pong!',
+        title: 'Pong! siema',
         fields: [
           {
             name: 'Opóźnienie bota',
