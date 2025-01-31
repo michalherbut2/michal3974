@@ -28,7 +28,7 @@ const content = `### muzyczne:
 **/poka_wszystkie_plusy** - pokazuje wszystkie plusy
 **/poka_plusy** - pokazuje plusy danej osoby
 
-### dla adminów:
+### dla adminów: 
 **/ostrzezenie dodaj** - dodaje ostrzeżenie danej osoby
 **/ostrzezenie usun** - usuwa ostrzeżenie danej osoby
 **/ostrzezenie czysc** - usuwa wszystkie ostrzeżenia danej osoby
