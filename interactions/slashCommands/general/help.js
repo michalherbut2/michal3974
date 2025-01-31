@@ -38,4 +38,5 @@ const content = `### muzyczne:
 **/ostrzezenie czysc** - usuwa wszystkie ostrzeżenia danej osoby
 **/config** - konfiguruje działanie bota 
 **/sprawdzaj_nieobecnosci** - sprawdza nieobecnośći
+**/super_turbo_przerwa** - daje super turbo przerwę na 28 dni
 `;

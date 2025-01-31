@@ -43,22 +43,28 @@ const commands = [];
     // Construct and prepare an instance of the REST module
     const rest = new REST().setToken(TOKEN);
 
-    let data = [];
+    const route = registerGlobal 
+      ? Routes.applicationCommands(CLIENT_ID) 
+      : Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID);
 
-    if (registerGlobal) {
-      data = await rest.put(
-        // global
-        Routes.applicationCommands(CLIENT_ID),
-        { body: commands }
-      );
-    } else {
-      // The put method is used to fully refresh all commands in the guild with the current set
-      data = await rest.put(
-        // JURA TWIERDZA
-        Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-        { body: commands }
-      );
-    }
+    const data = await rest.put(route, { body: commands });
+    
+    // let data = [];
+
+    // if (registerGlobal) {
+    //   data = await rest.put(
+    //     // global
+    //     Routes.applicationCommands(CLIENT_ID),
+    //     { body: commands }
+    //   );
+    // } else {
+    //   // The put method is used to fully refresh all commands in the guild with the current set
+    //   data = await rest.put(
+    //     // JURA TWIERDZA
+    //     Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+    //     { body: commands }
+    //   );
+    // }
 
     console.log(
       `Successfully reloaded ${data.length} application (/) commands.`
