@@ -21,9 +21,6 @@ const content = `### muzyczne:
 **/pętla** - gra ciągle tą samą piosenkę
 ****
 
-### ogólne:
-**/nb** - pokazuje nieobecnośći adminów
-
 ### ostrzeżenia:
 **/poka_wszystkie_ostrzezenia** - pokazuje wszystkie ostrzeżenia
 **/poka_ostrzezenia** - pokazuje ostrzeżenia danej osoby
