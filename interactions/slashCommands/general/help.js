@@ -19,7 +19,6 @@ const content = `### muzyczne:
 **/panel** - daje panel
 **/radio** - odpala radio
 **/pętla** - gra ciągle tą samą piosenkę
-****
 
 ### ostrzeżenia:
 **/poka_wszystkie_ostrzezenia** - pokazuje wszystkie ostrzeżenia
