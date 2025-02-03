@@ -14,11 +14,11 @@ module.exports = async (auditLog, guild, client) => {
   cleanReason = reason?.replace(/\s+/g, ' ').trim();
 
   // create a messages
-  const addTimeoutMessage = `<@${targetId}> w końcu dostał przerwę od <@${executorId}> na <t:${parseInt(
+  const addTimeoutMessage = `<@${targetId}> w końcu **dostał przerwę** od <@${executorId}> na <t:${parseInt(
     new Date(changes[0].new).getTime() / 1000
   )}:R> za **${cleanReason?.trim() ?? "darmo"}**.`;
 
-  const removeTimeoutMessage = `<@${executorId}> niestety, jak zbój, pozbawił Czcigodnego <@${targetId}> jego zasłużonej przerwy.`;
+  const removeTimeoutMessage = `niestety <@${executorId}>, jak zbój, zasłużonej **pozbawił przerwy** Czcigodnego <@${targetId}>.`;
 
   // choose the message
   // const description = changes[0].new ? addTimeoutMessage : removeTimeoutMessage;
