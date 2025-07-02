@@ -21,19 +21,17 @@ module.exports = {
     // Set interval to update presence every 1 minute
     setInterval(() => {
       updatePresence(client);
-    }, 60000); // 1 minute in milliseconds
+    }, 60_000); // 1 minute in milliseconds
 
     createDatabases(client);
     createAudioPlayers(client);
     await loadConfig(client);
 
-    // console.log();
     // const slash = client.slashCommands.map(k => k.data);
     // const menu = client.contextMenus.map(k => k.data);
     //   const array = [...slash, ...menu];
     //   console.log(array.length);
     //   await client.application.commands.set(array);
-    //   console.log("siema");
 
     // invites
     client.guilds.cache.forEach(async guild => {
