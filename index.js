@@ -1,4 +1,6 @@
-const { TOKEN } = require("./config.json");
+require('dotenv').config();
+const TOKEN = process.env.TOKEN;
+
 const {
   Client,
   GatewayIntentBits,

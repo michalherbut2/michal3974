@@ -1,6 +1,7 @@
 const { AuditLogEvent, Events } = require("discord.js");
 const logTimeout = require("../functions/messages/logTimeout");
 const logBan = require("../functions/messages/logBan");
+const logKick = require("../functions/messages/logKick");
 
 module.exports = {
   name: Events.GuildAuditLogEntryCreate,
@@ -14,6 +15,9 @@ module.exports = {
 
       case AuditLogEvent.MemberUpdate:
         logTimeout(auditLog, guild, client);
+        break;
+      case AuditLogEvent.MemberKick:
+        logKick(auditLog, guild, client);
         break;
 
       default:

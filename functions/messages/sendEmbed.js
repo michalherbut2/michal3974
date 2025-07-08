@@ -43,6 +43,10 @@ module.exports = async (
     case "intense green":
       color = 0x41fd02;
       break;
+    
+    case "orange":
+      color = 0xFFA500; // Standard orange
+      break;
 
     case "tiktok":
       color = 0x00f2ea;

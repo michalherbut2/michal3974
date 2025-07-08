@@ -10,7 +10,7 @@
     "axios": "^1.7.2",
     "better-sqlite3": "^11.1.2",
     "discord.js": "^14.15.3",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "glob": "^10.4.3",
     "libsodium-wrappers": "^0.7.13",
     "node-fetch": "^3.3.2",
