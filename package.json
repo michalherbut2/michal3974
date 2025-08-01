@@ -2,7 +2,7 @@
   "name": "michal3974",
   "version": "2.3",
   "description": "POLSKI bot discord",
-  "main": "index.js",
+  "main": "shard.js",
   "dependencies": {
     "@discordjs/voice": "^0.17.0",
     "@distube/ytdl-core": "^4.14.4",
