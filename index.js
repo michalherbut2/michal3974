@@ -11,6 +11,7 @@ const fs = require("fs");
 const loadSlashCommands = require("./functions/settings/loadSlashCommands");
 
 const client = new Client({
+  autoReconnect: true,
   intents: [
     // IntentsBitField.Flags.Guilds, // -special structure in discord.js that allows you to modify a bitfield, using functions like add() and remove()
     GatewayIntentBits.Guilds, // .GUILDS,//
