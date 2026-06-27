@@ -81,8 +81,6 @@
 //   //   )
 //   //   .toJSON();
 
-  
-
 // function generateHourlyForecast(hourlyForecast) {
 //   return hourlyForecast.map((hour) => {
 //     const time = new Date(hour.timestamp * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -175,69 +173,74 @@
 //   }
 // }
 
-
-const axios = require('axios');
-const { EmbedBuilder } = require('discord.js');
-const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 
 // Definicja miast wraz z odpowiadającymi im współrzędnymi
 const daneMiejsc = [
-  {name: 'Warszawa', value: "52.2297 21.0122"},
-  {name: 'Nowy Jork', value: "40.7128 -74.0060"},
-  {name: 'Tokio', value: "35.6895 139.6917"},
-  {name: 'Londyn', value: "51.5074 -0.1278"},
-  {name: 'Berlin', value: "52.5200 13.4050"},
-  {name: 'Płock', value: "52.5461 19.7060"},
-  {name: 'Kraków', value: "50.0647 19.9450"},
-  {name: 'Wrocław', value: "51.1079 17.0385"},
-  {name: 'Poznań', value: "52.4064 16.9252"},
-  {name: 'Bodzanów', value: "52.3552 20.1279"},
-  {name: 'Gdańsk', value: "54.3520 18.6466"},
-  {name: 'Łódź', value: "51.7592 19.4558"},
-  {name: 'Szczecin', value: "53.4289 14.5530"},
-  {name: 'Bydgoszcz', value: "53.1235 18.0084"},
-  {name: 'Lublin', value: "51.2465 22.5684"},
-  {name: 'Katowice', value: "50.2649 19.0238"},
-  {name: 'Białystok', value: "53.1325 23.1688"},
-  {name: 'Gdynia', value: "54.5189 18.5305"},
-  {name: 'Częstochowa', value: "50.8171 19.1183"},
-  {name: 'Radom', value: "51.4026 21.1471"},
-  {name: 'Sosnowiec', value: "50.2749 19.1056"},
+  { name: "Warszawa", value: "52.2297 21.0122" },
+  { name: "Nowy Jork", value: "40.7128 -74.0060" },
+  { name: "Tokio", value: "35.6895 139.6917" },
+  { name: "Londyn", value: "51.5074 -0.1278" },
+  { name: "Berlin", value: "52.5200 13.4050" },
+  { name: "Płock", value: "52.5461 19.7060" },
+  { name: "Kraków", value: "50.0647 19.9450" },
+  { name: "Wrocław", value: "51.1079 17.0385" },
+  { name: "Poznań", value: "52.4064 16.9252" },
+  { name: "Bodzanów", value: "52.3552 20.1279" },
+  { name: "Gdańsk", value: "54.3520 18.6466" },
+  { name: "Łódź", value: "51.7592 19.4558" },
+  { name: "Szczecin", value: "53.4289 14.5530" },
+  { name: "Bydgoszcz", value: "53.1235 18.0084" },
+  { name: "Lublin", value: "51.2465 22.5684" },
+  { name: "Katowice", value: "50.2649 19.0238" },
+  { name: "Białystok", value: "53.1325 23.1688" },
+  { name: "Gdynia", value: "54.5189 18.5305" },
+  { name: "Częstochowa", value: "50.8171 19.1183" },
+  { name: "Radom", value: "51.4026 21.1471" },
+  { name: "Sosnowiec", value: "50.2749 19.1056" },
   // Dodaj więcej miast, jeśli potrzebujesz
 ];
-const choices = Object.entries(daneMiejsc).map(([name, value]) => ({ name, value }));
-const xd=[{ name: 'Funny', value: 'gif_funny' },
-{ name: 'Meme', value: {x:'gif_meme'} },
-{ name: 'Movie', value: {a:'gif_movie'} }]
+const choices = Object.entries(daneMiejsc).map(([name, value]) => ({
+  name,
+  value,
+}));
+const xd = [
+  { name: "Funny", value: "gif_funny" },
+  { name: "Meme", value: { x: "gif_meme" } },
+  { name: "Movie", value: { a: "gif_movie" } },
+];
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('pogoda')
-    .setDescription('Sprawdź aktualną pogodę')
-    .addStringOption((option) =>
+    .setName("pogoda")
+    .setDescription("Sprawdź aktualną pogodę")
+    .addStringOption(option =>
       option
-        .setName('miejsce')
-        .setDescription('Wybierz miasto')
+        .setName("miejsce")
+        .setDescription("Wybierz miasto")
         .setRequired(true)
         // .addChoices(daneMiejsc)
-    // .addChoices(...daneMiejsc)
-      .addChoices(...daneMiejsc)
+        // .addChoices(...daneMiejsc)
+        .addChoices(...daneMiejsc),
     ),
   async execute(interaction) {
     const { options } = interaction;
-    const indeksWybranejOpcji = options.getString('miejsce');
-    
+    const indeksWybranejOpcji = options.getString("miejsce");
+
     // Pobierz wybrane miasto na podstawie indeksu
-    const wybraneMiasto = daneMiejsc.filter(a=>a.value==indeksWybranejOpcji)[0].name
+    const wybraneMiasto = daneMiejsc.filter(
+      a => a.value == indeksWybranejOpcji,
+    )[0].name;
     const wspolrzedne = indeksWybranejOpcji.split(" ");
     // console.log(wspolrzedne, wybraneMiasto);
-    const [ lat, lon ] = wspolrzedne;
+    const [lat, lon] = wspolrzedne;
     try {
       const informacjePogodowe = await pobierzInformacjePogodowe(lat, lon);
       // const indeksUV = await pobierzIndeksUV(wspolrzedne.lat, wspolrzedne.lon);
 
       // console.log(informacjePogodowe);
       // const wbudowany=createSimpleEmbed(`Aktualna pogoda w ${wybraneMiasto}`+Object.entries(informacjePogodowe.current).map(([klucz, wartość]) => ({ name: klucz, value: wartość })))
-      const wbudowany=createWeatherEmbed(informacjePogodowe, wybraneMiasto)
+      const wbudowany = createWeatherEmbed(informacjePogodowe, wybraneMiasto);
       // const wbudowany = new EmbedBuilder()
       //   .setTitle(`Aktualna pogoda w ${wybraneMiasto}`)
       //   .addFields('Współrzędne', `Szerokość: ${lat}, Długość: ${lon}`)
@@ -251,27 +254,39 @@ module.exports = {
 
       interaction.reply({ embeds: [wbudowany] });
     } catch (błąd) {
-      console.error('Błąd pobierania danych pogodowych:', błąd.message);
+      console.error("Błąd pobierania danych pogodowych:", błąd.message);
 
-      if (błąd.response && błąd.response.status === 404) {
+      const status = błąd.status ?? błąd.response?.status;
+
+      if (status === 404) {
         interaction.reply({
           content: `Nie znaleziono informacji pogodowej dla miejsca "${wybraneMiasto}". Sprawdź poprawność wpisanego miejsca.`,
           ephemeral: true,
         });
       } else {
-        interaction.reply({ content: 'Wystąpił błąd podczas pobierania danych pogodowych.', ephemeral: true });
+        interaction.reply({
+          content: "Wystąpił błąd podczas pobierania danych pogodowych.",
+          ephemeral: true,
+        });
       }
     }
   },
- };
+};
 
 async function pobierzInformacjePogodowe(lat, lon) {
-  
-  // console.log(lat,lon);
-  const odpowiedź = await axios.get(
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=auto&forecast_days=1`
+  const response = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=auto&forecast_days=1`,
   );
-  return odpowiedź.data;
+
+  if (!response.ok) {
+    const error = new Error(
+      `Failed to fetch weather data: ${response.status} ${response.statusText}`,
+    );
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
 }
 
 // async function pobierzIndeksUV(szerokosc, dlugosc) {
@@ -282,39 +297,39 @@ async function pobierzInformacjePogodowe(lat, lon) {
 
 function getDressAdvice(temperatura) {
   if (temperatura < 0) {
-    return 'Ubierz się bardzo ciepło, to jest mroźny dzień!';
+    return "Ubierz się bardzo ciepło, to jest mroźny dzień!";
   } else if (temperatura < 10) {
-    return 'Ubierz się ciepło, może być chłodno.';
+    return "Ubierz się ciepło, może być chłodno.";
   } else if (temperatura < 20) {
-    return 'Lekkie ubranie wystarczy, to jest przyjemna temperatura.';
+    return "Lekkie ubranie wystarczy, to jest przyjemna temperatura.";
   } else {
-    return 'Ubierz się lekko, to jest gorący dzień!';
+    return "Ubierz się lekko, to jest gorący dzień!";
   }
 }
 
 function getUVAdvice(indeksUV) {
   if (indeksUV < 3) {
-    return 'Niskie ryzyko promieniowania UV. Nie ma potrzeby stosowania środków ochrony przeciwsłonecznej.';
+    return "Niskie ryzyko promieniowania UV. Nie ma potrzeby stosowania środków ochrony przeciwsłonecznej.";
   } else if (indeksUV < 6) {
-    return 'Średnie ryzyko promieniowania UV. Stosuj krem przeciwsłoneczny o SPF 30+ i zakładaj okulary przeciwsłoneczne.';
+    return "Średnie ryzyko promieniowania UV. Stosuj krem przeciwsłoneczny o SPF 30+ i zakładaj okulary przeciwsłoneczne.";
   } else if (indeksUV < 8) {
-    return 'Wysokie ryzyko promieniowania UV. Unikaj ekspozycji na słońce w okresie 10:00-16:00, stosuj krem przeciwsłoneczny o SPF 30+ i nos ochronę przeciwsłoneczną.';
+    return "Wysokie ryzyko promieniowania UV. Unikaj ekspozycji na słońce w okresie 10:00-16:00, stosuj krem przeciwsłoneczny o SPF 30+ i nos ochronę przeciwsłoneczną.";
   } else if (indeksUV < 11) {
-    return 'Bardzo wysokie ryzyko promieniowania UV. Unikaj ekspozycji na słońce, nos ochronę przeciwsłoneczną, okulary przeciwsłoneczne i nakrycie głowy.';
+    return "Bardzo wysokie ryzyko promieniowania UV. Unikaj ekspozycji na słońce, nos ochronę przeciwsłoneczną, okulary przeciwsłoneczne i nakrycie głowy.";
   } else {
-    return 'Ekstremalne ryzyko promieniowania UV. Unikaj ekspozycji na słońce, nos ochronę przeciwsłoneczną, okulary przeciwsłoneczne i nakrycie głowy. Zalecane pozostawanie w cieniu.';
+    return "Ekstremalne ryzyko promieniowania UV. Unikaj ekspozycji na słońce, nos ochronę przeciwsłoneczną, okulary przeciwsłoneczne i nakrycie głowy. Zalecane pozostawanie w cieniu.";
   }
 }
 
 function getTemperatureColor(temperatura) {
   if (temperatura < 0) {
-    return '#0099ff'; // Zimno (niebieski)
+    return "#0099ff"; // Zimno (niebieski)
   } else if (temperatura < 15) {
-    return '#00cc00'; // Chłodno (zielony)
+    return "#00cc00"; // Chłodno (zielony)
   } else if (temperatura < 25) {
-    return '#ffcc00'; // Umiarkowanie (żółty)
+    return "#ffcc00"; // Umiarkowanie (żółty)
   } else {
-    return '#ff3300'; // Ciepło (czerwony)
+    return "#ff3300"; // Ciepło (czerwony)
   }
 }
 
@@ -323,16 +338,23 @@ function createWeatherEmbed(weatherInfo, wybraneMiasto) {
   const currentData = weatherInfo.current;
 
   const weatherFields = Object.entries(currentData).map(([key, value]) => {
-    const unit = currentUnits[key] || ''; // Pobierz jednostkę, jeśli istnieje
+    const unit = currentUnits[key] || ""; // Pobierz jednostkę, jeśli istnieje
     // return { name: key, value: `${value} ${unit}` };
-    return { name: translateLabel(key), value: `${value} ${unit}`, inline: true  };
+    return {
+      name: translateLabel(key),
+      value: `${value} ${unit}`,
+      inline: true,
+    };
   });
 
   const embed = new EmbedBuilder()
     .setTitle(`Aktualna pogoda w ${wybraneMiasto}`)
     .addFields(
       ...weatherFields,
-      { name: 'Wskazówki dotyczące ubioru', value: getDressAdvice(currentData.temperature_2m) },
+      {
+        name: "Wskazówki dotyczące ubioru",
+        value: getDressAdvice(currentData.temperature_2m),
+      },
       // { name: 'Promieniowanie UV', value: getUVAdvice(uvIndex) }
     )
     .setColor(getTemperatureColor(currentData.temperature_2m))
@@ -344,23 +366,23 @@ function createWeatherEmbed(weatherInfo, wybraneMiasto) {
 function translateLabel(label) {
   // Tutaj możesz dodać mapowanie etykiet na polskie odpowiedniki
   const translations = {
-    time: 'Czas',
-    interval: 'Interwał',
-    temperature_2m: 'Temperatura',
-    relative_humidity_2m: 'Wilgotność',
-    apparent_temperature: 'Odczuwalna temperatura',
-    is_day: 'Czy dzień',
-    precipitation: 'Opady',
-    rain: 'Deszcz',
-    showers: 'Przelotne opady',
-    snowfall: 'Opady śniegu',
-    weather_code: 'Kod pogodowy',
-    cloud_cover: 'Zachmurzenie',
-    pressure_msl: 'Ciśnienie atmosferyczne',
-    surface_pressure: 'Ciśnienie na powierzchni',
-    wind_speed_10m: 'Prędkość wiatru',
-    wind_direction_10m: 'Kierunek wiatru',
-    wind_gusts_10m: 'Podmuchy wiatru',
+    time: "Czas",
+    interval: "Interwał",
+    temperature_2m: "Temperatura",
+    relative_humidity_2m: "Wilgotność",
+    apparent_temperature: "Odczuwalna temperatura",
+    is_day: "Czy dzień",
+    precipitation: "Opady",
+    rain: "Deszcz",
+    showers: "Przelotne opady",
+    snowfall: "Opady śniegu",
+    weather_code: "Kod pogodowy",
+    cloud_cover: "Zachmurzenie",
+    pressure_msl: "Ciśnienie atmosferyczne",
+    surface_pressure: "Ciśnienie na powierzchni",
+    wind_speed_10m: "Prędkość wiatru",
+    wind_direction_10m: "Kierunek wiatru",
+    wind_gusts_10m: "Podmuchy wiatru",
   };
 
   return translations[label] || label;

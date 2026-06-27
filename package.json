@@ -2,30 +2,24 @@
   "name": "michal3974",
   "version": "2.3",
   "description": "POLSKI bot discord",
-  "packageManager": "pnpm@9.15.4",
   "main": "index.js",
   "dependencies": {
-    "@discordjs/voice": "^0.17.0",
-    "@distube/ytdl-core": "^4.14.4",
-    "@napi-rs/canvas": "^0.1.53",
-    "axios": "^1.7.2",
-    "better-sqlite3": "^11.1.2",
-    "discord.js": "^14.15.3",
-    "dotenv": "^16.6.1",
-    "glob": "^10.4.3",
-    "libsodium-wrappers": "^0.7.13",
-    "node-fetch": "^3.3.2",
+    "@discordjs/voice": "^0.19.2",
+    "@napi-rs/canvas": "^1.0.1",
+    "better-sqlite3": "^12.11.1",
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "glob": "^13.0.6",
+    "libsodium-wrappers": "^0.8.4",
     "prism-media": "^1.3.5",
     "xml2js": "^0.6.2",
-    "youtube-sr": "^4.3.11",
-    "yt-search": "^2.11.1",
-    "ytdl-core": "^4.11.5",
-    "ytdl-core-discord": "^1.3.1"
+    "youtube-sr": "^4.3.12",
+    "yt-search": "^2.13.1",
+    "ytdl-core": "^4.11.5"
   },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "build": "tsup src/index.ts --minify",
+    "dev": "node --watch index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -37,10 +31,5 @@
   "bugs": {
     "url": "https://github.com/CappeDiem/Discord.js-bot-template/issues"
   },
-  "homepage": "https://github.com/CappeDiem/Discord.js-bot-template#readme",
-  "devDependencies": {
-    "tsup": "^8.2.4",
-    "tsx": "^4.19.0",
-    "typescript": "^5.5.4"
-  }
+  "homepage": "https://github.com/CappeDiem/Discord.js-bot-template#readme"
 }
