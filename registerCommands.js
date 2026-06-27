@@ -1,16 +1,21 @@
 const { REST, Routes } = require("discord.js");
-const { CLIENT_ID, GUILD_ID, TOKEN } = require("./config.json");
+// const { CLIENT_ID, GUILD_ID, TOKEN } = require("./config.json");
+require('dotenv').config();
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
+
 const path = require("path");
 const { glob } = require("glob");
 
 // ##### CONFIG #####
 // ### production ###
-const registerGlobal = true;
-const clearCommands = false;
+// const registerGlobal = true;
+// const clearCommands = false;
 
 // ###    test    ###
-// const registerGlobal = false;
-// const clearCommands = true;
+const registerGlobal = false;
+const clearCommands = true;
 
 // ##### PROGRAM #####
 const commands = [];
