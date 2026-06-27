@@ -13,10 +13,10 @@
 ```sh
 git clone git@github.com:michalherbut2/michal3974.git
 cd michal3974
-npm i
+pnpm install
 ```
 
-Po instalacji skonfiguruj bota i odpal `npm start`, żeby odpalić bota.
+Po instalacji skonfiguruj bota i odpal `pnpm start`, żeby odpalić bota.
 
 ## ⚙️ Konfiguracja / Configuration
 
